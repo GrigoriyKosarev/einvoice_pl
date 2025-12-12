@@ -203,15 +203,17 @@ class Auth:
         """
         Отримує фінальний токен доступу
 
-        Цей метод "викупляє" (redeem) тимчасовий токен на постійний токен сесії.
+        Цей метод "викупляє" (redeem) тимчасовий токен на постійні токени сесії.
         Відповідь містить:
         {
-            "sessionToken": {
-                "token": "фінальний_токен_для_роботи_з_API",
-                "context": {...},
-                "credentials": {...}
+            "accessToken": {
+                "token": "токен_для_роботи_з_API",
+                "validUntil": "2025-12-12T14:08:27..."
             },
-            "referenceNumber": "..."
+            "refreshToken": {
+                "token": "токен_для_оновлення_accessToken",
+                "validUntil": "2025-12-19T13:53:27..."
+            }
         }
         """
         try:
@@ -239,12 +241,20 @@ class Auth:
             token_data = resp.json()
             _logger.info(f'Step 6 - Response from /auth/token/redeem: {token_data}')
 
-            # Це вже ФІНАЛЬНИЙ токен для роботи з API!
-            self.token = token_data.get('sessionToken', {}).get('token')
-            self.session_context = token_data.get('sessionToken', {}).get('context', {})
+            # Отримуємо accessToken і refreshToken
+            self.token = token_data.get('accessToken', {}).get('token')
+            self.token_valid_until = token_data.get('accessToken', {}).get('validUntil')
+            self.refresh_token = token_data.get('refreshToken', {}).get('token')
+            self.refresh_token_valid_until = token_data.get('refreshToken', {}).get('validUntil')
 
-            _logger.info(f'Final session token obtained: {self.token[:50] if self.token else None}...')
-            _logger.info(f'Session context: {self.session_context}')
+            if not self.token:
+                _logger.error('Failed to extract accessToken from response!')
+                return False
+
+            _logger.info(f'✓ Access token obtained: {self.token[:50]}...')
+            _logger.info(f'  Valid until: {self.token_valid_until}')
+            _logger.info(f'✓ Refresh token obtained: {self.refresh_token[:50] if self.refresh_token else None}...')
+            _logger.info(f'  Valid until: {self.refresh_token_valid_until}')
             return True
 
         except Exception as e:
