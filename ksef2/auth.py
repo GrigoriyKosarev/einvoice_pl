@@ -139,7 +139,8 @@ class Auth:
         _logger.info(f'Auth token (first 30 chars): {self.auth_token[:30] if self.auth_token else "None"}...')
         _logger.info(f'URL: {config.api_url}/api/v2/auth/{self.reference_number}')
 
-        headers = {'SessionToken': self.auth_token}
+        # ВАЖЛИВО: KSeF API очікує заголовок Authorization з Bearer prefix
+        headers = {'Authorization': f'Bearer {self.auth_token}'}
 
         while attempt < max_attempts:
             try:
@@ -214,7 +215,8 @@ class Auth:
         }
         """
         try:
-            headers = {'SessionToken': self.auth_token}
+            # ВАЖЛИВО: KSeF API очікує заголовок Authorization з Bearer prefix
+            headers = {'Authorization': f'Bearer {self.auth_token}'}
             resp = requests.post(
                 f'{config.api_url}/api/v2/auth/token/redeem',
                 headers=headers

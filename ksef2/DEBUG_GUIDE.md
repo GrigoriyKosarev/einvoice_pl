@@ -53,6 +53,7 @@ _logger.info(f'Reference number: {self.reference_number}')
 - Тимчасовий `auth_token` неправильний
 - Токен застарів (challenge timeout)
 - Токен не відповідає reference_number
+- **Неправильний заголовок** (має бути `Authorization: Bearer {token}`)
 
 **Що перевірити:**
 ```python
@@ -66,6 +67,7 @@ _logger.info(f'Auth token (first 30 chars): {self.auth_token[:30]}...')
 1. Перевірте, чи правильно отриманий `authenticationToken.token` з кроку 4
 2. Переконайтеся, що використовується саме **auth_token**, а не фінальний token
 3. Не чекайте занадто довго між кроками 4 і 5 (challenge може застаріти)
+4. **ВАЖЛИВО**: Заголовок має бути `Authorization: Bearer {token}`, а НЕ `SessionToken: {token}`
 
 ---
 
