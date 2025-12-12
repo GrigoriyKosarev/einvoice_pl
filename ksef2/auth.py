@@ -215,6 +215,11 @@ class Auth:
         }
         """
         try:
+            # Діагностика перед запитом
+            _logger.info(f'Attempting to redeem token...')
+            _logger.info(f'Auth token (first 30 chars): {self.auth_token[:30] if self.auth_token else "None"}...')
+            _logger.info(f'URL: {config.api_url}/api/v2/auth/token/redeem')
+
             # ВАЖЛИВО: KSeF API очікує заголовок Authorization з Bearer prefix
             headers = {'Authorization': f'Bearer {self.auth_token}'}
             resp = requests.post(
@@ -223,7 +228,12 @@ class Auth:
             )
 
             if resp.status_code != 200:
-                _logger.warning(f'API Error redeeming token: {resp.status_code}')
+                _logger.error(f'API Error redeeming token: {resp.status_code}')
+                try:
+                    error_data = resp.json()
+                    _logger.error(f'Error details: {error_data}')
+                except:
+                    _logger.error(f'Error response text: {resp.text}')
                 return False
 
             token_data = resp.json()
