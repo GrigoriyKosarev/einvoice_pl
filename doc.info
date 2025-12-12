@@ -1,0 +1,11 @@
+[TEST]
+1. Запускаю t-00-setup.py
+Створюється certificates-test.json
+2. t-api-auth-token.py з параметрами [1 f -o]
+Створюється ....-auth.json з токеном який потім обмінюється
+3. t-10-session-online.py з параметрами [1 f -o]
+Відкриває сесію, створюється файл ....-session.json
+4. fv.py з параметрами [1 2 1]
+Створює рандомні дані для інвойса, перейменовую файл у faktura.xml
+5. t-10-session-online.py з параметрами [1 f -s faktura.xml]
+Створює інвойс з файла faktura.xml
