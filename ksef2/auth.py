@@ -1,5 +1,8 @@
 import base64
+import time
 import dateutil
+import logging
+import requests
 
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import rsa, padding as apadding
@@ -7,19 +10,21 @@ from cryptography.hazmat.primitives import hashes
 
 import config
 import certificate as cert
-import requests
-import logging
 
 
 _logger = logging.getLogger(__name__)
 
 class Challenge:
     def __init__(self):
+        self.challenge = None
+        self.timestamp = None
+
         try:
             resp = requests.post(f'{config.api_url}/api/v2/auth/challenge')
             if resp.status_code != 200:
                 _logger.warning(f'API Error /challenge: {resp.status_code}')
-                return False
+                return
+
             data = resp.json()
             self.challenge = data.get("challenge")
             self.timestamp = data.get("timestamp")
@@ -29,8 +34,14 @@ class Challenge:
 
 class Auth:
     def __init__(self):
+        # 1. Отримуємо challenge
         challenge = Challenge()
+        if not challenge.challenge:
+            _logger.error('Failed to get challenge')
+            self.token = None
+            return
 
+        # 2. Завантажуємо сертифікат і шифруємо токен
         certificate, public_key = self.loadcertificate()
         dt = dateutil.parser.isoparse(challenge.timestamp)
         t = int(dt.timestamp() * 1000)
@@ -45,17 +56,109 @@ class Auth:
             ),
         )
 
-        body = init_token_authentication_request.InitTokenAuthenticationRequest(
-            challenge=datachallenge['challenge'],
-            context_identifier=authentication_context_identifier.AuthenticationContextIdentifier(
-                type_=authentication_context_identifier_type.AuthenticationContextIdentifierType.NIP,
-                value=cfg.nip
-            ),
-            encrypted_token=base64.b64encode(encrypted_token).decode(),
-            # authorization_policy=,
-        )
+        # 3. Формуємо body як простий словник (без складних класів!)
+        nip = config.kseftoken.split('|')[1].replace('nip-', '')  # Витягуємо NIP з токена
+        body = {
+            "challenge": challenge.challenge,
+            "contextIdentifier": {
+                "type": "NIP",
+                "value": nip
+            },
+            "encryptedToken": base64.b64encode(encrypted_token).decode()
+        }
 
-        pass
+        # 4. Відправляємо запит на автентифікацію
+        try:
+            resp = requests.post(
+                f'{config.api_url}/api/v2/auth/ksef-token',
+                json=body
+            )
+            if resp.status_code != 202:
+                _logger.warning(f'API Error /auth/ksef-token: {resp.status_code} - {resp.text}')
+                self.token = None
+                return
+
+            auth_data = resp.json()
+            self.auth_token = auth_data.get('authenticationToken', {}).get('token')
+            self.reference_number = auth_data.get('referenceNumber')
+
+            _logger.info(f'Authentication initiated, reference: {self.reference_number}')
+
+            # 5. Чекаємо підтвердження автентифікації
+            if not self._wait_for_authentication():
+                self.token = None
+                return
+
+            # 6. Отримуємо фінальний токен
+            if not self._redeem_token():
+                self.token = None
+                return
+
+        except Exception as e:
+            _logger.error(f'Authentication error: {e}')
+            self.token = None
+
+    def _wait_for_authentication(self) -> bool:
+        """Чекає поки автентифікація буде підтверджена"""
+        max_attempts = 30
+        attempt = 0
+
+        headers = {'SessionToken': self.auth_token}
+
+        while attempt < max_attempts:
+            try:
+                resp = requests.get(
+                    f'{config.api_url}/api/v2/auth/{self.reference_number}',
+                    headers=headers
+                )
+
+                if resp.status_code != 200:
+                    _logger.warning(f'API Error checking auth status: {resp.status_code}')
+                    return False
+
+                data = resp.json()
+                status_code = data.get('status', {}).get('code')
+
+                if status_code == 200:
+                    _logger.info('Authentication confirmed')
+                    return True
+                elif status_code >= 300:
+                    _logger.error(f'Authentication failed: {data.get("status", {}).get("description")}')
+                    return False
+
+                # Статус < 200, продовжуємо чекати
+                time.sleep(2)
+                attempt += 1
+
+            except Exception as e:
+                _logger.error(f'Error checking auth status: {e}')
+                return False
+
+        _logger.error('Authentication timeout')
+        return False
+
+    def _redeem_token(self) -> bool:
+        """Отримує фінальний токен доступу"""
+        try:
+            headers = {'SessionToken': self.auth_token}
+            resp = requests.post(
+                f'{config.api_url}/api/v2/auth/token/redeem',
+                headers=headers
+            )
+
+            if resp.status_code != 200:
+                _logger.warning(f'API Error redeeming token: {resp.status_code}')
+                return False
+
+            token_data = resp.json()
+            self.token = token_data.get('sessionToken', {}).get('token')
+
+            _logger.info('Final session token obtained')
+            return True
+
+        except Exception as e:
+            _logger.error(f'Error redeeming token: {e}')
+            return False
 
     def loadcertificate(self):
         public_cert_manager = cert.PublicCertificateManager(config.api_url)
