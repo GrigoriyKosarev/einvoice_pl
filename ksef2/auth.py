@@ -85,6 +85,19 @@ class Auth:
             self.auth_token = auth_data.get('authenticationToken', {}).get('token')
             self.reference_number = auth_data.get('referenceNumber')
 
+            # Перевіряємо, чи отримали необхідні дані
+            if not self.auth_token:
+                _logger.error('Failed to get auth_token from response!')
+                _logger.error(f'Response structure: {auth_data}')
+                self.token = None
+                return
+
+            if not self.reference_number:
+                _logger.error('Failed to get reference_number from response!')
+                _logger.error(f'Response structure: {auth_data}')
+                self.token = None
+                return
+
             _logger.info(f'Authentication initiated, reference: {self.reference_number}')
             _logger.info(f'Temporary auth_token: {self.auth_token[:50] if self.auth_token else None}...')
 
@@ -120,6 +133,12 @@ class Auth:
         max_attempts = 30
         attempt = 0
 
+        # Діагностика перед початком
+        _logger.info(f'Starting authentication polling...')
+        _logger.info(f'Reference number: {self.reference_number}')
+        _logger.info(f'Auth token (first 30 chars): {self.auth_token[:30] if self.auth_token else "None"}...')
+        _logger.info(f'URL: {config.api_url}/api/v2/auth/{self.reference_number}')
+
         headers = {'SessionToken': self.auth_token}
 
         while attempt < max_attempts:
@@ -129,29 +148,48 @@ class Auth:
                     headers=headers
                 )
 
-                if resp.status_code != 200:
-                    _logger.warning(f'API Error checking auth status: {resp.status_code}')
+                # Обробка різних HTTP статусів
+                if resp.status_code == 200:
+                    # Успішна відповідь - перевіряємо статус автентифікації
+                    data = resp.json()
+                    _logger.debug(f'Step 5 - Check status response: {data}')
+
+                    status_code = data.get('status', {}).get('code')
+                    status_desc = data.get('status', {}).get('description', 'N/A')
+
+                    _logger.info(f'Auth status check #{attempt + 1}: code={status_code}, desc={status_desc}')
+
+                    if status_code == 200:
+                        _logger.info('Authentication confirmed! ✓')
+                        return True
+                    elif status_code >= 300:
+                        _logger.error(f'Authentication failed: {status_desc}')
+                        return False
+
+                    # Статус < 200, продовжуємо чекати
+                    _logger.info(f'Still processing (code {status_code}), waiting 2 sec...')
+                    time.sleep(2)
+                    attempt += 1
+
+                elif resp.status_code == 400:
+                    # Помилка валідації - виводимо деталі
+                    try:
+                        error_data = resp.json()
+                        _logger.error(f'Validation error (400): {error_data}')
+                    except:
+                        _logger.error(f'Validation error (400): {resp.text}')
                     return False
 
-                data = resp.json()
-                _logger.debug(f'Step 5 - Check status response: {data}')
-
-                status_code = data.get('status', {}).get('code')
-                status_desc = data.get('status', {}).get('description', 'N/A')
-
-                _logger.info(f'Auth status check #{attempt + 1}: code={status_code}, desc={status_desc}')
-
-                if status_code == 200:
-                    _logger.info('Authentication confirmed! ✓')
-                    return True
-                elif status_code >= 300:
-                    _logger.error(f'Authentication failed: {status_desc}')
+                elif resp.status_code == 401:
+                    # Не авторизовано - можливо неправильний auth_token
+                    _logger.error(f'Unauthorized (401): Invalid or expired auth_token')
+                    _logger.debug(f'Auth token used: {self.auth_token[:30] if self.auth_token else None}...')
                     return False
 
-                # Статус < 200, продовжуємо чекати
-                _logger.info(f'Still processing (code {status_code}), waiting 2 sec...')
-                time.sleep(2)
-                attempt += 1
+                else:
+                    # Інші помилки
+                    _logger.warning(f'Unexpected HTTP status {resp.status_code}: {resp.text[:200]}')
+                    return False
 
             except Exception as e:
                 _logger.error(f'Error checking auth status: {e}')
