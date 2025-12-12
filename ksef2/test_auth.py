@@ -35,8 +35,10 @@ def main():
             _logger.info('='*60)
             _logger.info('✓ AUTHENTICATION SUCCESSFUL!')
             _logger.info('='*60)
-            _logger.info(f'Final token: {auth_session.token[:50]}...')
-            _logger.info(f'Session context: {auth_session.session_context}')
+            _logger.info(f'Access token: {auth_session.token[:50]}...')
+            _logger.info(f'  Valid until: {auth_session.token_valid_until}')
+            _logger.info(f'Refresh token: {auth_session.refresh_token[:50]}...')
+            _logger.info(f'  Valid until: {auth_session.refresh_token_valid_until}')
             return 0
         else:
             _logger.error('='*60)
