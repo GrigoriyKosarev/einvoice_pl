@@ -10,6 +10,8 @@ from cryptography.hazmat.primitives import hashes
 
 import config
 import certificate as cert
+import requests
+import logging
 
 
 _logger = logging.getLogger(__name__)
