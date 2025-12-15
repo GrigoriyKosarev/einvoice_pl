@@ -27,10 +27,10 @@ def test_invoice_creation():
 
     try:
         invoice_xml = create_sample_invoice_xml(
-            invoice_number="TEST/2025/001",
+            invoice_number="TEST/2025/006",
             seller_nip="9462527947",
             seller_name="Test Seller Company",
-            buyer_nip="1234567890",
+            buyer_nip="9462527947",
             buyer_name="Test Buyer Company",
             net_amount=1000.00,
             vat_rate=23
