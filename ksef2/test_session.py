@@ -109,9 +109,9 @@ def test_tokens_list(session):
 
 
 def test_invoice_query(session):
-    """Тест 4: Запит на пошук рахунків (може бути порожній список)"""
+    """Тест 4: Запит на пошук метаданих рахунків"""
     _logger.info('='*60)
-    _logger.info('TEST 4: Querying invoices')
+    _logger.info('TEST 4: Querying invoice metadata')
     _logger.info('='*60)
 
     try:
@@ -121,46 +121,54 @@ def test_invoice_query(session):
         }
 
         # Запит на пошук рахунків за останні 7 днів
-        from datetime import datetime, timedelta
-        date_to = datetime.now()
+        from datetime import datetime, timedelta, timezone
+        date_to = datetime.now(timezone.utc)
         date_from = date_to - timedelta(days=7)
 
+        # Структура відповідно до InvoiceQueryFilters
         body = {
-            "queryCriteria": {
-                "subjectType": "subject1",
-                "type": "range",
-                "invoicingDateFrom": date_from.strftime('%Y-%m-%d'),
-                "invoicingDateTo": date_to.strftime('%Y-%m-%d')
+            "subjectType": "Subject1",  # Subject1 = sprzedawca (продавець)
+            "dateRange": {
+                "dateType": "Invoicing",  # Дата прийняття в KSeF
+                "from": date_from.isoformat(),
+                "to": date_to.isoformat()
             }
         }
 
         resp = requests.post(
-            f'{config.api_url}/api/v2/query/invoice/sync',
+            f'{config.api_url}/api/v2/invoices/query/metadata',
             headers=headers,
-            json=body
+            json=body,
+            params={'pageSize': 10, 'pageOffset': 0}
         )
 
         if resp.status_code == 200:
             data = resp.json()
             _logger.info('✓ Invoice query executed successfully!')
-            invoices = data.get('invoiceHeaderList', [])
+            invoices = data.get('invoiceMetadataList', [])
             _logger.info(f'Found {len(invoices)} invoices')
 
-            if invoices:
-                for i, inv in enumerate(invoices[:3], 1):  # Показуємо перші 3
-                    _logger.info(f'\nInvoice #{i}:')
-                    _logger.info(f'  Number: {inv.get("invoiceNumber", "N/A")}')
-                    _logger.info(f'  Date: {inv.get("invoicingDate", "N/A")}')
-                    _logger.info(f'  Amount: {inv.get("amount", "N/A")}')
+            for i, inv in enumerate(invoices[:3], 1):  # Показуємо перші 3
+                _logger.info(f'\nInvoice #{i}:')
+                _logger.info(f'  KSeF Number: {inv.get("ksefNumber", "N/A")}')
+                _logger.info(f'  Invoice Number: {inv.get("invoiceNumber", "N/A")}')
+                _logger.info(f'  Invoicing Date: {inv.get("invoicingDate", "N/A")}')
+                _logger.info(f'  Amount: {inv.get("amountBrutto", "N/A")}')
 
             return True
         else:
             _logger.warning(f'Invoice query failed: {resp.status_code}')
-            _logger.warning(f'Response: {resp.text}')
+            try:
+                error_data = resp.json()
+                _logger.warning(f'Error details: {error_data}')
+            except:
+                _logger.warning(f'Response: {resp.text}')
             return False
 
     except Exception as e:
         _logger.error(f'✗ Exception: {e}')
+        import traceback
+        traceback.print_exc()
         return False
 
 
