@@ -20,26 +20,34 @@ _logger = logging.getLogger(__name__)
 
 
 def test_session_status(session):
-    """Тест 1: Перевірка статусу сесії"""
+    """Тест 1: Перевірка списку активних сесій"""
     _logger.info('='*60)
-    _logger.info('TEST 1: Checking session status')
+    _logger.info('TEST 1: Checking active sessions')
     _logger.info('='*60)
 
     try:
         headers = {'Authorization': f'Bearer {session.token}'}
         resp = requests.get(
-            f'{config.api_url}/api/v2/session/status',
-            headers=headers
+            f'{config.api_url}/api/v2/auth/sessions',
+            headers=headers,
+            params={'pageSize': 10}
         )
 
         if resp.status_code == 200:
             data = resp.json()
-            _logger.info('✓ Session status retrieved successfully!')
-            _logger.info(f'Session active: {data.get("active", "N/A")}')
-            _logger.info(f'Context: {data.get("context", {})}')
+            _logger.info('✓ Sessions list retrieved successfully!')
+            sessions = data.get('authenticationList', [])
+            _logger.info(f'Active sessions: {len(sessions)}')
+
+            for i, sess in enumerate(sessions, 1):
+                _logger.info(f'\nSession #{i}:')
+                _logger.info(f'  Reference: {sess.get("referenceNumber", "N/A")}')
+                _logger.info(f'  Method: {sess.get("authenticationMethod", "N/A")}')
+                _logger.info(f'  Start date: {sess.get("startDate", "N/A")}')
+
             return True
         else:
-            _logger.error(f'✗ Failed to get session status: {resp.status_code}')
+            _logger.error(f'✗ Failed to get sessions: {resp.status_code}')
             _logger.error(f'Response: {resp.text}')
             return False
 
@@ -61,36 +69,37 @@ def test_token_info(session):
     return True
 
 
-def test_credentials_list(session):
-    """Тест 3: Список credentials (токенів/ключів)"""
+def test_tokens_list(session):
+    """Тест 3: Список токенів KSeF"""
     _logger.info('='*60)
-    _logger.info('TEST 3: Listing credentials')
+    _logger.info('TEST 3: Listing KSeF tokens')
     _logger.info('='*60)
 
     try:
         headers = {'Authorization': f'Bearer {session.token}'}
         resp = requests.get(
-            f'{config.api_url}/api/v2/credentials',
-            headers=headers
+            f'{config.api_url}/api/v2/tokens',
+            headers=headers,
+            params={'pageSize': 10}
         )
 
         if resp.status_code == 200:
             data = resp.json()
-            _logger.info('✓ Credentials list retrieved successfully!')
-            credentials = data.get('credentialsList', [])
-            _logger.info(f'Total credentials: {len(credentials)}')
+            _logger.info('✓ Tokens list retrieved successfully!')
+            tokens = data.get('tokenList', [])
+            _logger.info(f'Total tokens: {len(tokens)}')
 
-            for i, cred in enumerate(credentials, 1):
-                _logger.info(f'\nCredential #{i}:')
-                _logger.info(f'  Identifier: {cred.get("identifier", "N/A")}')
-                _logger.info(f'  Type: {cred.get("type", "N/A")}')
-                _logger.info(f'  Status: {cred.get("status", "N/A")}')
-                _logger.info(f'  Valid from: {cred.get("validFrom", "N/A")}')
-                _logger.info(f'  Valid to: {cred.get("validTo", "N/A")}')
+            for i, token in enumerate(tokens, 1):
+                _logger.info(f'\nToken #{i}:')
+                _logger.info(f'  Identifier: {token.get("identifier", "N/A")}')
+                _logger.info(f'  Type: {token.get("type", "N/A")}')
+                _logger.info(f'  Status: {token.get("status", "N/A")}')
+                _logger.info(f'  Created: {token.get("creationDate", "N/A")}')
+                _logger.info(f'  Valid to: {token.get("validTo", "N/A")}')
 
             return True
         else:
-            _logger.warning(f'Failed to get credentials: {resp.status_code}')
+            _logger.warning(f'Failed to get tokens: {resp.status_code}')
             _logger.warning(f'Response: {resp.text}')
             return False
 
@@ -174,8 +183,8 @@ def main():
     results = []
 
     results.append(('Token Info', test_token_info(session)))
-    results.append(('Session Status', test_session_status(session)))
-    results.append(('Credentials List', test_credentials_list(session)))
+    results.append(('Active Sessions', test_session_status(session)))
+    results.append(('KSeF Tokens List', test_tokens_list(session)))
     results.append(('Invoice Query', test_invoice_query(session)))
 
     # Підсумок
