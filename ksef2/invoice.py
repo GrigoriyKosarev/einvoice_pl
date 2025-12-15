@@ -199,6 +199,63 @@ class InvoiceSession:
             traceback.print_exc()
             return None
 
+    def get_invoice_status(self, invoice_reference_number: str) -> Optional[Dict[str, Any]]:
+        """
+        Перевіряє статус відправленого інвойсу
+
+        Args:
+            invoice_reference_number: Референс-номер інвойсу, отриманий після відправки
+
+        Returns:
+            Словник з даними статусу або None у випадку помилки
+        """
+        if not self.is_active:
+            _logger.error('Session is not active!')
+            return None
+
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.access_token}'
+            }
+
+            resp = requests.get(
+                f'{config.api_url}/api/v2/sessions/{self.session_reference}/invoices/{invoice_reference_number}',
+                headers=headers
+            )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                _logger.info(f'Invoice status retrieved successfully')
+
+                status = data.get("status", {})
+                status_code = status.get("code")
+                status_desc = status.get("description")
+                status_details = status.get("details", [])
+
+                _logger.info(f'  Status code: {status_code}')
+                _logger.info(f'  Status description: {status_desc}')
+                if status_details:
+                    _logger.info(f'  Status details:')
+                    for detail in status_details:
+                        _logger.info(f'    - {detail}')
+
+                _logger.info(f'  KSeF number: {data.get("ksefNumber")}')
+                return data
+            else:
+                _logger.error(f'Failed to get invoice status: {resp.status_code}')
+                try:
+                    error_data = resp.json()
+                    _logger.error(f'Error details: {error_data}')
+                except:
+                    _logger.error(f'Response: {resp.text}')
+                return None
+
+        except Exception as e:
+            _logger.error(f'Exception getting invoice status: {e}')
+            import traceback
+            traceback.print_exc()
+            return None
+
     def close(self) -> bool:
         """
         Закриває онлайн сесію
@@ -289,6 +346,9 @@ def create_sample_invoice_xml(
     if issue_date is None:
         issue_date = datetime.now().strftime('%Y-%m-%d')
 
+    # DataWytworzeniaFa потребує повний DateTime з часом
+    creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
     vat_amount = round(net_amount * vat_rate / 100, 2)
     gross_amount = round(net_amount + vat_amount, 2)
 
@@ -297,7 +357,7 @@ def create_sample_invoice_xml(
     <Naglowek>
         <KodFormularza kodSystemowy="FA (2)" wersjaSchemy="1-0E">FA</KodFormularza>
         <WariantFormularza>2</WariantFormularza>
-        <DataWytworzeniaFa>{issue_date}</DataWytworzeniaFa>
+        <DataWytworzeniaFa>{creation_datetime}</DataWytworzeniaFa>
         <SystemInfo>KSeF Python Client</SystemInfo>
     </Naglowek>
     <Podmiot1>
@@ -333,6 +393,7 @@ def create_sample_invoice_xml(
             <P_16>2</P_16>
             <P_17>2</P_17>
             <P_18>2</P_18>
+            <P_18A>2</P_18A>
             <Zwolnienie>
                 <P_19N>1</P_19N>
             </Zwolnienie>
@@ -347,17 +408,9 @@ def create_sample_invoice_xml(
         <RodzajFaktury>VAT</RodzajFaktury>
         <FaWiersz>
             <NrWierszaFa>1</NrWierszaFa>
-            <Indeks>PRODUCT001</Indeks>
-            <NazwaTowaruUslugi>Test product/service</NazwaTowaruUslugi>
-            <PKWIU>62.01.11.0</PKWIU>
-            <CN>8523492300</CN>
-            <Ilosc>1.00</Ilosc>
-            <JM>szt</JM>
-            <CenaJedn>{net_amount:.2f}</CenaJedn>
-            <WartoscBezVAT>{net_amount:.2f}</WartoscBezVAT>
-            <StawkaVat>{vat_rate}</StawkaVat>
-            <WartoscVAT>{vat_amount:.2f}</WartoscVAT>
-            <WartoscBrutto>{gross_amount:.2f}</WartoscBrutto>
+            <P_7>Test product/service</P_7>
+            <P_8B>{net_amount:.2f}</P_8B>
+            <P_9A>{gross_amount:.2f}</P_9A>
         </FaWiersz>
     </Fa>
 </Faktura>"""
