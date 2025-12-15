@@ -64,12 +64,42 @@ def test_invoice_sending(access_token: str, invoice_xml: str):
             # Відправляємо інвойс
             result = inv_session.send_invoice(invoice_xml)
 
-            if result:
-                _logger.info('✓ Invoice sent successfully!')
-                return True
-            else:
+            if not result:
                 _logger.error('✗ Failed to send invoice')
                 return False
+
+            _logger.info('✓ Invoice sent successfully!')
+
+            # Перевіряємо статус інвойсу
+            invoice_ref = result.get("referenceNumber") or result.get("invoiceReferenceNumber")
+            if invoice_ref:
+                _logger.info('\nChecking invoice status...')
+                import time
+                time.sleep(2)  # Даємо серверу час обробити
+
+                status = inv_session.get_invoice_status(invoice_ref)
+                if status:
+                    _logger.info('✓ Invoice status check successful!')
+
+                    # Перевіряємо чи є помилки обробки
+                    status_info = status.get('status', {})
+                    status_code = status_info.get('code')
+                    if status_code and status_code >= 400:
+                        _logger.error(f'⚠ Invoice validation/processing failed with code {status_code}')
+                        _logger.error(f'Description: {status_info.get("description")}')
+                        details = status_info.get("details", [])
+                        if details:
+                            _logger.error(f'Details: {details}')
+                        return False
+                    elif status_code and status_code >= 200 and status_code < 300:
+                        _logger.info(f'✓ Invoice accepted! Status code: {status_code}')
+                        ksef_number = status.get('ksefNumber')
+                        if ksef_number:
+                            _logger.info(f'✓ KSeF number assigned: {ksef_number}')
+                else:
+                    _logger.warning('⚠ Could not retrieve invoice status')
+
+            return True
 
     except Exception as e:
         _logger.error(f'✗ Exception: {e}')
