@@ -50,6 +50,10 @@ class PublicCertificateManager:
     def get_symmetric_key_cert(self) -> str:
         return self.certificates.get('SymmetricKeyEncryption')
 
+    def get_invoice_encryption_cert(self) -> str:
+        """Отримує сертифікат для шифрування інвойсів"""
+        return self.certificates.get('InvoiceEncryption')
+
     def is_certificate_valid(self, cert_type: str) -> bool:
         return cert_type in self.certificates and self.certificates[cert_type] is not None
 
