@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Send to KSeF Wizard Form -->
+    <record id="view_ksef_send_invoice_form" model="ir.ui.view">
+        <field name="name">ksef.send.invoice.form</field>
+        <field name="model">ksef.send.invoice</field>
+        <field name="arch" type="xml">
+            <form string="Send Invoice to KSeF">
+                <group>
+                    <field name="invoice_id" invisible="1"/>
+                    <group>
+                        <label for="invoice_xml" string="Invoice XML Preview"/>
+                        <field name="invoice_xml" widget="text" nolabel="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_send" string="Send to KSeF" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

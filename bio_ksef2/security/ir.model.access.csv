@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ksef_config_user,ksef.config.user,model_ksef_config,account.group_account_invoice,1,0,0,0
+access_ksef_config_manager,ksef.config.manager,model_ksef_config,account.group_account_manager,1,1,1,1
+access_ksef_send_invoice_user,ksef.send.invoice.user,model_ksef_send_invoice,account.group_account_invoice,1,1,1,1

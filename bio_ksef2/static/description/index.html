@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>KSeF Integration</title>
+</head>
+<body>
+    <section class="oe_container">
+        <div class="oe_row oe_spaced">
+            <h2 class="oe_slogan">Polish KSeF Integration</h2>
+            <h3 class="oe_slogan">Krajowy System e-Faktur</h3>
+            <div class="oe_span12">
+                <p class="oe_mt32">
+                    Integration with Polish National e-Invoice System (KSeF - Krajowy System e-Faktur).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container oe_dark">
+        <div class="oe_row oe_spaced">
+            <h2 class="oe_slogan">Features</h2>
+            <div class="oe_span6">
+                <div class="oe_picture">
+                    <h3>Send Invoices to KSeF</h3>
+                    <p>
+                        Easily send customer invoices to the Polish KSeF system with one click.
+                    </p>
+                </div>
+            </div>
+            <div class="oe_span6">
+                <div class="oe_picture">
+                    <h3>Track KSeF Numbers</h3>
+                    <p>
+                        Automatically receive and store KSeF numbers assigned to your invoices.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="oe_row oe_spaced">
+            <div class="oe_span6">
+                <div class="oe_picture">
+                    <h3>Status Monitoring</h3>
+                    <p>
+                        Monitor the status of submitted invoices (Pending, Accepted, Rejected).
+                    </p>
+                </div>
+            </div>
+            <div class="oe_span6">
+                <div class="oe_picture">
+                    <h3>FA_VAT Format Support</h3>
+                    <p>
+                        Automatic generation of invoices in FA_VAT XML format required by KSeF.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container">
+        <div class="oe_row oe_spaced">
+            <h2 class="oe_slogan">Configuration</h2>
+            <div class="oe_span12">
+                <ol>
+                    <li>Go to Accounting → Configuration → KSeF → Configuration</li>
+                    <li>Create a new configuration</li>
+                    <li>Select API Environment (Test or Production)</li>
+                    <li>Enter your KSeF Token</li>
+                    <li>Click "Test Connection" to verify</li>
+                    <li>Enable "Auto-send Invoices" if desired</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container oe_dark">
+        <div class="oe_row oe_spaced">
+            <h2 class="oe_slogan">Usage</h2>
+            <div class="oe_span12">
+                <h3>Sending Invoices</h3>
+                <ol>
+                    <li>Create and validate a customer invoice</li>
+                    <li>Click the "Send to KSeF" button in the invoice form</li>
+                    <li>Review the XML preview</li>
+                    <li>Click "Send to KSeF"</li>
+                    <li>Check the KSeF tab for status and assigned number</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container">
+        <div class="oe_row oe_spaced">
+            <h2 class="oe_slogan">Requirements</h2>
+            <div class="oe_span12">
+                <ul>
+                    <li>Odoo 16.0</li>
+                    <li>Python 3.10+</li>
+                    <li>cryptography library</li>
+                    <li>requests library</li>
+                    <li>Valid KSeF Token</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container oe_separator"></section>
+</body>
+</html>
