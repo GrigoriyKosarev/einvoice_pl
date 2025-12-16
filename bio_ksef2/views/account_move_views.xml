@@ -88,7 +88,7 @@
                 <filter string="KSeF Rejected" name="ksef_rejected" domain="[('ksef_status', '=', 'rejected')]"/>
                 <filter string="Not Sent to KSeF" name="ksef_not_sent" domain="[('ksef_status', '=', 'draft'), ('state', '=', 'posted'), ('move_type', 'in', ['out_invoice', 'out_refund'])]"/>
             </xpath>
-            <xpath expr="//group[@name='group_by']" position="inside">
+            <xpath expr="//search/group" position="inside">
                 <filter string="KSeF Status" name="group_by_ksef_status" context="{'group_by': 'ksef_status'}"/>
             </xpath>
         </field>

@@ -29,7 +29,6 @@ Requirements:
     'license': 'LGPL-3',
     'depends': [
         'account',
-        'l10n_pl',
     ],
     'external_dependencies': {
         'python': ['cryptography', 'requests'],
