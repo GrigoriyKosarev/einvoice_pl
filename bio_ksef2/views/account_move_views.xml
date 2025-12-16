@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Invoice Form View Inherit -->
+    <record id="view_move_form_inherit_ksef" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.ksef</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add KSeF button in header -->
+            <xpath expr="//header/button[@name='action_post']" position="after">
+                <button name="action_send_to_ksef"
+                        string="Send to KSeF"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'posted' or move_type not in ('out_invoice', 'out_refund') or ksef_number"
+                        groups="account.group_account_invoice"/>
+                <button name="action_check_ksef_status"
+                        string="Check KSeF Status"
+                        type="object"
+                        invisible="not ksef_reference or ksef_status == 'accepted'"
+                        groups="account.group_account_invoice"/>
+            </xpath>
+
+            <!-- Add KSeF status widget -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_check_ksef_status"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        invisible="not ksef_reference">
+                    <field name="ksef_status" widget="badge"
+                           decoration-success="ksef_status == 'accepted'"
+                           decoration-warning="ksef_status == 'pending'"
+                           decoration-danger="ksef_status == 'rejected'"
+                           decoration-muted="ksef_status == 'draft'"/>
+                </button>
+            </xpath>
+
+            <!-- Add KSeF fields in notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="KSeF" name="ksef" invisible="move_type not in ('out_invoice', 'out_refund')">
+                    <group>
+                        <group string="KSeF Information">
+                            <field name="ksef_number" readonly="1"/>
+                            <field name="ksef_reference" readonly="1"/>
+                            <field name="ksef_sent_date" readonly="1"/>
+                        </group>
+                        <group string="KSeF Status">
+                            <field name="ksef_status" readonly="1"/>
+                            <field name="ksef_status_code" readonly="1"/>
+                            <field name="ksef_status_description" readonly="1" widget="text"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Invoice Tree View Inherit -->
+    <record id="view_invoice_tree_inherit_ksef" model="ir.ui.view">
+        <field name="name">account.move.tree.inherit.ksef</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_state']" position="after">
+                <field name="ksef_number" optional="show"/>
+                <field name="ksef_status" optional="show"
+                       decoration-success="ksef_status == 'accepted'"
+                       decoration-warning="ksef_status == 'pending'"
+                       decoration-danger="ksef_status == 'rejected'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Invoice Search View Inherit -->
+    <record id="view_account_invoice_filter_inherit_ksef" model="ir.ui.view">
+        <field name="name">account.invoice.search.inherit.ksef</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='late']" position="after">
+                <separator/>
+                <filter string="KSeF Accepted" name="ksef_accepted" domain="[('ksef_status', '=', 'accepted')]"/>
+                <filter string="KSeF Pending" name="ksef_pending" domain="[('ksef_status', '=', 'pending')]"/>
+                <filter string="KSeF Rejected" name="ksef_rejected" domain="[('ksef_status', '=', 'rejected')]"/>
+                <filter string="Not Sent to KSeF" name="ksef_not_sent" domain="[('ksef_status', '=', 'draft'), ('state', '=', 'posted'), ('move_type', 'in', ['out_invoice', 'out_refund'])]"/>
+            </xpath>
+            <xpath expr="//group[@name='group_by']" position="inside">
+                <filter string="KSeF Status" name="group_by_ksef_status" context="{'group_by': 'ksef_status'}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

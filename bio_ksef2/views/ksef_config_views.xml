@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- KSeF Configuration Form View -->
+    <record id="view_ksef_config_form" model="ir.ui.view">
+        <field name="name">ksef.config.form</field>
+        <field name="model">ksef.config</field>
+        <field name="arch" type="xml">
+            <form string="KSeF Configuration">
+                <header>
+                    <button name="action_test_connection" string="Test Connection" type="object" class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="api_url" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="ksef_token" password="True"/>
+                            <field name="auto_send"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Help">
+                            <div class="alert alert-info" role="alert">
+                                <h4>KSeF Configuration Help</h4>
+                                <p><strong>API Environment:</strong></p>
+                                <ul>
+                                    <li><strong>Test:</strong> Use for testing purposes (ksef-test.mf.gov.pl)</li>
+                                    <li><strong>Production:</strong> Use for real invoices (ksef.mf.gov.pl)</li>
+                                </ul>
+                                <p><strong>KSeF Token:</strong></p>
+                                <p>The KSeF token should be in the format:</p>
+                                <p><code>20251209-EC-...|nip-XXXXXXXXX|...</code></p>
+                                <p>You can generate this token in the KSeF web interface.</p>
+                                <p><strong>Auto-send Invoices:</strong></p>
+                                <p>When enabled, invoices will be automatically sent to KSeF upon validation.</p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- KSeF Configuration Tree View -->
+    <record id="view_ksef_config_tree" model="ir.ui.view">
+        <field name="name">ksef.config.tree</field>
+        <field name="model">ksef.config</field>
+        <field name="arch" type="xml">
+            <tree string="KSeF Configurations">
+                <field name="company_id"/>
+                <field name="api_url"/>
+                <field name="auto_send"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- KSeF Configuration Action -->
+    <record id="action_ksef_config" model="ir.actions.act_window">
+        <field name="name">KSeF Configuration</field>
+        <field name="res_model">ksef.config</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure KSeF Integration
+            </p>
+            <p>
+                Set up your Polish KSeF (Krajowy System e-Faktur) integration here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem
+        id="menu_ksef_root"
+        name="KSeF"
+        parent="account.menu_finance_configuration"
+        sequence="100"/>
+
+    <menuitem
+        id="menu_ksef_config"
+        name="Configuration"
+        parent="menu_ksef_root"
+        action="action_ksef_config"
+        sequence="10"/>
+
+</odoo>
