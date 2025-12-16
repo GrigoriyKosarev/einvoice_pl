@@ -14,22 +14,34 @@
                         string="Send to KSeF"
                         type="object"
                         class="oe_highlight"
-                        invisible="state != 'posted' or move_type not in ('out_invoice', 'out_refund') or ksef_number"
-                        groups="account.group_account_invoice"/>
+                        groups="account.group_account_invoice"
+                        attrs="{
+                            'invisible': [
+                                '|', '|',
+                                ('state', '!=', 'posted'),
+                                ('move_type', 'not in', ('out_invoice', 'out_refund')),
+                                ('ksef_number', '!=', False)
+                            ]}"/>
                 <button name="action_check_ksef_status"
                         string="Check KSeF Status"
                         type="object"
-                        invisible="not ksef_reference or ksef_status == 'accepted'"
-                        groups="account.group_account_invoice"/>
+                        groups="account.group_account_invoice"
+                        attrs="{
+                            'invisible': [
+                                '|',
+                                ('ksef_reference', '=', False),
+                                ('ksef_status', '=', 'accepted')
+                            ]
+                        }"/>
             </xpath>
 
             <!-- Add KSeF status widget -->
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_check_ksef_status"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-file-text-o"
-                        invisible="not ksef_reference">
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-file-text-o"
+                    attrs="{'invisible': [('ksef_reference', '=', False)]}">
                     <field name="ksef_status" widget="badge"
                            decoration-success="ksef_status == 'accepted'"
                            decoration-warning="ksef_status == 'pending'"
@@ -40,7 +52,8 @@
 
             <!-- Add KSeF fields in notebook -->
             <xpath expr="//notebook" position="inside">
-                <page string="KSeF" name="ksef" invisible="move_type not in ('out_invoice', 'out_refund')">
+                <page string="KSeF" name="ksef"
+                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund'))]}">
                     <group>
                         <group string="KSeF Information">
                             <field name="ksef_number" readonly="1"/>
@@ -86,10 +99,12 @@
                 <filter string="KSeF Accepted" name="ksef_accepted" domain="[('ksef_status', '=', 'accepted')]"/>
                 <filter string="KSeF Pending" name="ksef_pending" domain="[('ksef_status', '=', 'pending')]"/>
                 <filter string="KSeF Rejected" name="ksef_rejected" domain="[('ksef_status', '=', 'rejected')]"/>
-                <filter string="Not Sent to KSeF" name="ksef_not_sent" domain="[('ksef_status', '=', 'draft'), ('state', '=', 'posted'), ('move_type', 'in', ['out_invoice', 'out_refund'])]"/>
-            </xpath>
-            <xpath expr="//group[@name='group_by']" position="inside">
-                <filter string="KSeF Status" name="group_by_ksef_status" context="{'group_by': 'ksef_status'}"/>
+                <filter string="Not Sent to KSeF" name="ksef_not_sent" domain="[('ksef_status', '=', 'draft'),
+                    ('state', '=', 'posted'), ('move_type', 'in', ['out_invoice', 'out_refund'])]"/>
+                <separator/>
+                <filter string="Group by KSeF Status"
+                    name="group_by_ksef_status"
+                    context="{'group_by': 'ksef_status'}"/>
             </xpath>
         </field>
     </record>
