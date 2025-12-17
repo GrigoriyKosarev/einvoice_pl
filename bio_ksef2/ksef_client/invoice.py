@@ -326,6 +326,8 @@ def create_sample_invoice_xml(
     buyer_nip: str,
     buyer_name: str,
     net_amount: float,
+    gross_amount: float,
+    vat_amount: float,
     vat_rate: int = 23,
     issue_date: Optional[str] = None
 ) -> str:
@@ -351,8 +353,8 @@ def create_sample_invoice_xml(
     # DataWytworzeniaFa потребує повний DateTime з часом
     creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
-    vat_amount = round(net_amount * vat_rate / 100, 2)
-    gross_amount = round(net_amount + vat_amount, 2)
+    # vat_amount = round(net_amount * vat_rate / 100, 2)
+    # gross_amount = round(net_amount + vat_amount, 2)
 
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Faktura xmlns="http://crd.gov.pl/wzor/2023/06/29/12648/">
