@@ -49,9 +49,10 @@ class KSefSendInvoice(models.TransientModel):
         buyer_nip = invoice.partner_id.vat.replace('PL', '').replace('pl', '')
 
         # Calculate totals
-        net_amount = sum(line.price_subtotal for line in invoice.invoice_line_ids)
+        # net_amount = sum(line.price_subtotal for line in invoice.invoice_line_ids)
+        net_amount = invoice.amount_untaxed
         gross_amount = invoice.amount_total
-
+        vat_amount = invoice.amount_tax
         # Get VAT rate (use first line's VAT rate)
         vat_rate = 0  # Default
         for line in invoice.invoice_line_ids:
@@ -68,6 +69,8 @@ class KSefSendInvoice(models.TransientModel):
             buyer_nip=buyer_nip,
             buyer_name=invoice.partner_id.name,
             net_amount=float(net_amount),
+            gross_amount=float(vat_amount),
+            vat_amount=float(net_amount),
             vat_rate=vat_rate,
             issue_date=invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else None,
         )
