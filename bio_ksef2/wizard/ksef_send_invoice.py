@@ -53,9 +53,12 @@ class KSefSendInvoice(models.TransientModel):
         gross_amount = invoice.amount_total
 
         # Get VAT rate (use first line's VAT rate)
-        vat_rate = 23  # Default
-        if invoice.invoice_line_ids and invoice.invoice_line_ids[0].tax_ids:
-            vat_rate = int(invoice.invoice_line_ids[0].tax_ids[0].amount)
+        vat_rate = 0  # Default
+        for line in invoice.invoice_line_ids:
+            tax = line.tax_ids.filtered(lambda t: t.amount_type == 'percent')
+            if tax:
+                vat_rate = tax[0].amount
+                break
 
         # Generate XML
         return create_sample_invoice_xml(

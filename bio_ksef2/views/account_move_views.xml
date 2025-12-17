@@ -35,21 +35,6 @@
                         }"/>
             </xpath>
 
-            <!-- Add KSeF status widget -->
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_check_ksef_status"
-                    type="object"
-                    class="oe_stat_button"
-                    icon="fa-file-text-o"
-                    attrs="{'invisible': [('ksef_reference', '=', False)]}">
-                    <field name="ksef_status" widget="badge"
-                           decoration-success="ksef_status == 'accepted'"
-                           decoration-warning="ksef_status == 'pending'"
-                           decoration-danger="ksef_status == 'rejected'"
-                           decoration-muted="ksef_status == 'draft'"/>
-                </button>
-            </xpath>
-
             <!-- Add KSeF fields in notebook -->
             <xpath expr="//notebook" position="inside">
                 <page string="KSeF" name="ksef"
@@ -61,9 +46,21 @@
                             <field name="ksef_sent_date" readonly="1"/>
                         </group>
                         <group string="KSeF Status">
-                            <field name="ksef_status" readonly="1"/>
-                            <field name="ksef_status_code" readonly="1"/>
-                            <field name="ksef_status_description" readonly="1" widget="text"/>
+                            <group>
+                                <field name="ksef_status" readonly="1"/>
+                            </group>
+                            <group>
+                                <button name="action_check_ksef_status"
+                                    type="object"
+                                    string="Update"
+                                    class="btn btn-primary oe_highlight"
+                                    icon="fa-refresh"
+                                    attrs="{'invisible': [('ksef_reference', '=', False)]}"/>
+                            </group>
+                            <group>
+                                <field name="ksef_status_code" readonly="1"/>
+                                <field name="ksef_status_description" readonly="1" widget="text"/>
+                            </group>
                         </group>
                     </group>
                 </page>

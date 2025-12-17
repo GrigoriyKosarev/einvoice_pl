@@ -58,7 +58,7 @@
             <tree string="KSeF Configurations">
                 <field name="company_id"/>
                 <field name="api_url"/>
-                <field name="auto_send"/>
+<!--                <field name="auto_send"/>-->
                 <field name="active"/>
             </tree>
         </field>
