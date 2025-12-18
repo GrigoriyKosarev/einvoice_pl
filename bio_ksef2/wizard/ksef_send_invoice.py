@@ -93,9 +93,8 @@ class KSefSendInvoice(models.TransientModel):
             if line.tax_ids:
                 vat_rate = int(line.tax_ids[0].amount) if line.tax_ids[0].amount else 0
 
-            # Get unit of measure
+            # Get unit of measure in Polish (required by KSeF)
             unit = line.product_uom_id.with_context(lang=company_lang).name if line.product_uom_id else 'szt'
-            unit = 'szt'
 
             product_name = line.name or line.product_id.name or 'Product/Service'
             # product_name = product_name.replace('[', '').replace(']', '')
