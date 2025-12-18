@@ -2,6 +2,7 @@
 """Wizard for sending invoices to KSeF"""
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from datetime import datetime
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -34,46 +35,85 @@ class KSefSendInvoice(models.TransientModel):
 
     def _generate_invoice_xml(self, invoice):
         """Generate FA_VAT XML for invoice"""
-        from ..ksef_client.invoice import create_sample_invoice_xml
-        from datetime import datetime
+        from ..ksef_client.xml_generator import generate_fa_vat_xml
 
-        # Extract data from invoice
+        # Validate data
         if not invoice.partner_id.vat:
             raise UserError(_('Customer must have a valid NIP (VAT number)'))
-
         if not invoice.company_id.vat:
             raise UserError(_('Company must have a valid NIP (VAT number)'))
 
-        # Clean NIP (remove PL prefix if present)
-        seller_nip = invoice.company_id.vat.replace('PL', '').replace('pl', '')
-        buyer_nip = invoice.partner_id.vat.replace('PL', '').replace('pl', '')
+        # Prepare invoice data
+        invoice_data = {
+            'invoice_number': invoice.name,
+            'issue_date': invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else datetime.today().strftime('%Y-%m-%d'),
+            'currency': invoice.currency_id.name or 'PLN',
 
-        # Calculate totals
-        # net_amount = sum(line.price_subtotal for line in invoice.invoice_line_ids)
-        net_amount = invoice.amount_untaxed
-        gross_amount = invoice.amount_total
-        vat_amount = invoice.amount_tax
-        # Get VAT rate (use first line's VAT rate)
-        vat_rate = 0  # Default
+            # Seller data (company)
+            'seller': {
+                'nip': invoice.company_id.vat,
+                'name': invoice.company_id.name,
+                'street': invoice.company_id.street or '',
+                'city': invoice.company_id.city or '',
+                'zip': invoice.company_id.zip or '',
+                'country': invoice.company_id.country_id.code or 'PL',
+            },
+
+            # Buyer data (customer)
+            'buyer': {
+                'nip': invoice.partner_id.vat,
+                'name': invoice.partner_id.name,
+                'street': invoice.partner_id.street or '',
+                'city': invoice.partner_id.city or '',
+                'zip': invoice.partner_id.zip or '',
+                'country': invoice.partner_id.country_id.code or 'PL',
+            },
+
+            # Invoice lines
+            'lines': [],
+
+            # Totals
+            'total_net': 0.0,
+            'total_vat': 0.0,
+            'total_gross': invoice.amount_total,
+        }
+
+        # Process invoice lines
         for line in invoice.invoice_line_ids:
-            tax = line.tax_ids.filtered(lambda t: t.amount_type == 'percent')
-            if tax:
-                vat_rate = tax[0].amount
-                break
+            if line.display_type:  # Skip section/note lines
+                continue
+
+            # Get VAT rate
+            vat_rate = 23  # Default
+            if line.tax_ids:
+                vat_rate = int(line.tax_ids[0].amount) if line.tax_ids[0].amount else 0
+
+            # Get unit of measure
+            unit = line.product_uom_id.name if line.product_uom_id else 'szt'
+
+            line_data = {
+                'name': line.name or line.product_id.name or 'Product/Service',
+                'quantity': line.quantity,
+                'unit': unit,
+                'price_unit': line.price_unit,
+                'net_amount': line.price_subtotal,
+                'vat_rate': vat_rate,
+                'vat_amount': line.price_total - line.price_subtotal,
+                'gross_amount': line.price_total,
+            }
+
+            invoice_data['lines'].append(line_data)
+            invoice_data['total_net'] += line.price_subtotal
+
+        # Calculate total VAT
+        invoice_data['total_vat'] = invoice_data['total_gross'] - invoice_data['total_net']
+
+        # Get config to determine format version
+        config = self.env['ksef.config'].get_config(invoice.company_id.id)
+        format_version = config.fa_version or 'FA2'
 
         # Generate XML
-        return create_sample_invoice_xml(
-            invoice_number=invoice.name,
-            seller_nip=seller_nip,
-            seller_name=invoice.company_id.name,
-            buyer_nip=buyer_nip,
-            buyer_name=invoice.partner_id.name,
-            net_amount=float(net_amount),
-            gross_amount=float(vat_amount),
-            vat_amount=float(net_amount),
-            vat_rate=vat_rate,
-            issue_date=invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else None,
-        )
+        return generate_fa_vat_xml(invoice_data, format_version=format_version)
 
     def action_send(self):
         """Send invoice to KSeF"""

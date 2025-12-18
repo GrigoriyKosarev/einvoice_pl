@@ -25,6 +25,7 @@
                         <group>
                             <field name="ksef_token" password="True"/>
                             <field name="auto_send"/>
+                            <field name="fa_version" widget="radio"/>
                         </group>
                     </group>
                     <notebook>
@@ -42,6 +43,12 @@
                                 <p>You can generate this token in the KSeF web interface.</p>
                                 <p><strong>Auto-send Invoices:</strong></p>
                                 <p>When enabled, invoices will be automatically sent to KSeF upon validation.</p>
+                                <p><strong>Invoice Format Version:</strong></p>
+                                <ul>
+                                    <li><strong>FA(2):</strong> Current format, valid until January 31, 2026</li>
+                                    <li><strong>FA(3):</strong> New format, mandatory from February 1, 2026</li>
+                                </ul>
+                                <p>Select the appropriate format version for your invoices based on the current date and KSeF requirements.</p>
                             </div>
                         </page>
                     </notebook>

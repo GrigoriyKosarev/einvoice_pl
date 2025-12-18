@@ -42,6 +42,16 @@ class KSefConfig(models.Model):
         default=False,
         help='Automatically send invoices to KSeF upon validation',
     )
+    fa_version = fields.Selection(
+        [
+            ('FA2', 'FA(2) - Current format (valid until 31.01.2026)'),
+            ('FA3', 'FA(3) - New format (mandatory from 01.02.2026)'),
+        ],
+        string='Invoice Format Version',
+        required=True,
+        default='FA2',
+        help='Select FA_VAT invoice format version to use for KSeF submissions',
+    )
 
     _sql_constraints = [
         ('company_unique', 'unique(company_id)', 'Only one KSeF configuration per company is allowed!'),
