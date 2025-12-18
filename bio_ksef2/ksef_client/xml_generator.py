@@ -164,6 +164,12 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     ])
 
     # Рядки товарів/послуг (FaWiersz)
+    # Згідно з офіційним XSD:
+    # P_8A - Miara (одиниця виміру, ТЕКСТ)
+    # P_8B - Ilość (кількість, ЧИСЛО)
+    # P_9A - Cena jednostkowa netto (ціна за одиницю без ПДВ)
+    # P_11 - Wartość sprzedaży netto (загальна сума без ПДВ)
+    # P_12 - Stawka podatku (ставка ПДВ %)
     for idx, line in enumerate(invoice_data['lines'], start=1):
         xml_parts.extend([
             '        <FaWiersz>',
@@ -171,25 +177,24 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
             f'            <P_7>{_escape_xml(line["name"])}</P_7>',
         ])
 
-        # Додаємо кількість та одиницю якщо є
+        # P_8A - Miara (одиниця виміру)
+        if line.get('unit'):
+            xml_parts.append(f'            <P_8A>{_escape_xml(line["unit"])}</P_8A>')
+
+        # P_8B - Ilość (кількість)
         if line.get('quantity'):
-            xml_parts.append(f'            <P_8A>{line["quantity"]:.2f}</P_8A>')
-        # if line.get('unit'):
-        #     xml_parts.append(f'            <P_8AJ>{_escape_xml(line["unit"])}</P_8AJ>')
+            xml_parts.append(f'            <P_8B>{line["quantity"]:.2f}</P_8B>')
 
-        # Сума без ПДВ
-        xml_parts.append(f'            <P_8B>{line["net_amount"]:.2f}</P_8B>')
+        # P_9A - Cena jednostkowa netto (ціна за одиницю без ПДВ)
+        if line.get('price_unit') is not None:
+            xml_parts.append(f'            <P_9A>{line["price_unit"]:.2f}</P_9A>')
 
-        # Сума з ПДВ
-        xml_parts.append(f'            <P_9A>{line["gross_amount"]:.2f}</P_9A>')
+        # P_11 - Wartość sprzedaży netto (загальна сума без ПДВ)
+        xml_parts.append(f'            <P_11>{line["net_amount"]:.2f}</P_11>')
 
-        # Ставка ПДВ
+        # P_12 - Stawka podatku (ставка ПДВ %)
         if line.get('vat_rate') is not None:
-            xml_parts.append(f'            <P_11>{line["vat_rate"]}</P_11>')
-
-        # # Сума ПДВ
-        # if line.get('vat_amount'):
-        #     xml_parts.append(f'            <P_12>{line["vat_amount"]}</P_12>')
+            xml_parts.append(f'            <P_12>{line["vat_rate"]}</P_12>')
 
         xml_parts.append('        </FaWiersz>')
 
