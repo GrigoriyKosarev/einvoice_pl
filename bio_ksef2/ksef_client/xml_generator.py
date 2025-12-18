@@ -4,12 +4,13 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 
-def generate_fa_vat_xml(invoice_data: Dict[str, Any]) -> str:
+def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2') -> str:
     """
     Генерує повноцінний XML інвойсу у форматі FA_VAT для KSeF
 
     Args:
         invoice_data: Словник з даними інвойсу:
+        format_version: Версія формату ('FA2' або 'FA3')
             {
                 'invoice_number': str,
                 'issue_date': str (YYYY-MM-DD),
@@ -55,13 +56,25 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any]) -> str:
     # DataWytworzeniaFa потребує DateTime
     creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
+    # Визначаємо параметри формату
+    if format_version == 'FA3':
+        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'  # FA(3) може мати інший namespace
+        kod_systemowy = 'FA (3)'
+        wariant = '3'
+        wersja_schemy = '1-0E'
+    else:  # FA2 за замовчуванням
+        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
+        kod_systemowy = 'FA (2)'
+        wariant = '2'
+        wersja_schemy = '1-0E'
+
     # Початок XML
     xml_parts = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<Faktura xmlns="http://crd.gov.pl/wzor/2023/06/29/12648/">',
+        f'<Faktura xmlns="{namespace}">',
         '    <Naglowek>',
-        '        <KodFormularza kodSystemowy="FA (2)" wersjaSchemy="1-0E">FA</KodFormularza>',
-        '        <WariantFormularza>2</WariantFormularza>',
+        f'        <KodFormularza kodSystemowy="{kod_systemowy}" wersjaSchemy="{wersja_schemy}">FA</KodFormularza>',
+        f'        <WariantFormularza>{wariant}</WariantFormularza>',
         f'        <DataWytworzeniaFa>{creation_datetime}</DataWytworzeniaFa>',
         '        <SystemInfo>Odoo KSeF Integration</SystemInfo>',
         '    </Naglowek>',

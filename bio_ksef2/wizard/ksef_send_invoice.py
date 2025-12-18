@@ -108,8 +108,12 @@ class KSefSendInvoice(models.TransientModel):
         # Calculate total VAT
         invoice_data['total_vat'] = invoice_data['total_gross'] - invoice_data['total_net']
 
+        # Get config to determine format version
+        config = self.env['ksef.config'].get_config(invoice.company_id.id)
+        format_version = config.fa_version or 'FA2'
+
         # Generate XML
-        return generate_fa_vat_xml(invoice_data)
+        return generate_fa_vat_xml(invoice_data, format_version=format_version)
 
     def action_send(self):
         """Send invoice to KSeF"""
