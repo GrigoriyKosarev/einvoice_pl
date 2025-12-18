@@ -43,10 +43,15 @@ class KSefSendInvoice(models.TransientModel):
         if not invoice.company_id.vat:
             raise UserError(_('Company must have a valid NIP (VAT number)'))
 
+        company_lang = 'pl_PL'
+        issue_date = invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else datetime.today().strftime('%Y-%m-%d')
+
         # Prepare invoice data
         invoice_data = {
             'invoice_number': invoice.name,
-            'issue_date': invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else datetime.today().strftime('%Y-%m-%d'),
+            'issue_date': issue_date,
+            'sale_date': issue_date,
+            'payment_date': invoice.invoice_date_due.strftime('%Y-%m-%d') if invoice.invoice_date_due else issue_date,
             'currency': invoice.currency_id.name or 'PLN',
 
             # Seller data (company)
@@ -80,7 +85,7 @@ class KSefSendInvoice(models.TransientModel):
 
         # Process invoice lines
         for line in invoice.invoice_line_ids:
-            if line.display_type:  # Skip section/note lines
+            if line.display_type != 'product':  # Skip section/note lines
                 continue
 
             # Get VAT rate
@@ -89,10 +94,14 @@ class KSefSendInvoice(models.TransientModel):
                 vat_rate = int(line.tax_ids[0].amount) if line.tax_ids[0].amount else 0
 
             # Get unit of measure
-            unit = line.product_uom_id.name if line.product_uom_id else 'szt'
+            unit = line.product_uom_id.with_context(lang=company_lang).name if line.product_uom_id else 'szt'
+            unit = 'szt'
+
+            product_name = line.name or line.product_id.name or 'Product/Service'
+            # product_name = product_name.replace('[', '').replace(']', '')
 
             line_data = {
-                'name': line.name or line.product_id.name or 'Product/Service',
+                'name': product_name,
                 'quantity': line.quantity,
                 'unit': unit,
                 'price_unit': line.price_unit,

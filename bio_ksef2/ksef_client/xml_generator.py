@@ -118,6 +118,10 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'        <KodWaluty>{invoice_data.get("currency", "PLN")}</KodWaluty>',
         f'        <P_1>{invoice_data["issue_date"]}</P_1>',
         f'        <P_2>{_escape_xml(invoice_data["invoice_number"])}</P_2>',
+        # f'        <P_6>{invoice_data["sale_date"]}</P_6>',
+        # '         <WarunkiTransakcji>',
+        # f'              <TerminPlatnosci>{invoice_data["payment_date"]}</TerminPlatnosci>',
+        # '         </WarunkiTransakcji>',
     ])
 
     # Підсумки за ставками ПДВ
@@ -170,8 +174,8 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         # Додаємо кількість та одиницю якщо є
         if line.get('quantity'):
             xml_parts.append(f'            <P_8A>{line["quantity"]:.2f}</P_8A>')
-        if line.get('unit'):
-            xml_parts.append(f'            <P_8AJ>{_escape_xml(line["unit"])}</P_8AJ>')
+        # if line.get('unit'):
+        #     xml_parts.append(f'            <P_8AJ>{_escape_xml(line["unit"])}</P_8AJ>')
 
         # Сума без ПДВ
         xml_parts.append(f'            <P_8B>{line["net_amount"]:.2f}</P_8B>')
@@ -183,9 +187,9 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('vat_rate') is not None:
             xml_parts.append(f'            <P_11>{line["vat_rate"]}</P_11>')
 
-        # Сума ПДВ
-        if line.get('vat_amount'):
-            xml_parts.append(f'            <P_12>{line["vat_amount"]:.2f}</P_12>')
+        # # Сума ПДВ
+        # if line.get('vat_amount'):
+        #     xml_parts.append(f'            <P_12>{line["vat_amount"]}</P_12>')
 
         xml_parts.append('        </FaWiersz>')
 
@@ -210,6 +214,10 @@ def _escape_xml(text: str) -> str:
     """Екранує спеціальні символи XML"""
     if not text:
         return ''
+
+    import re
+    text = re.sub(r'\s+', ' ', text).strip()
+
     return (text
             .replace('&', '&amp;')
             .replace('<', '&lt;')

@@ -44,8 +44,8 @@ class KSefConfig(models.Model):
     )
     fa_version = fields.Selection(
         [
-            ('FA2', 'FA(2) - Current format (valid until 31.01.2026)'),
-            ('FA3', 'FA(3) - New format (mandatory from 01.02.2026)'),
+            ('FA2', 'FA(2) - valid until 31.01.2026'),
+            ('FA3', 'FA(3) - mandatory from 01.02.2026'),
         ],
         string='Invoice Format Version',
         required=True,
