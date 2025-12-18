@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_move_form_ksef2" model="ir.ui.view">
+        <field name="name">account.move.form.ksef2</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet" position="inside">
+                <group string="KSeF" invisible="move_type not in ('out_invoice','out_refund')">
+                    <field name="ksef_state" readonly="1"/>
+                    <field name="ksef_session_id" readonly="1"/>
+                    <field name="ksef_invoice_id" readonly="1"/>
+                    <field name="ksef_invoice_number" readonly="1"/>
+
+                    <!-- ADDED: helper fields (read-only) -->
+                    <field name="ksef_session_closed" readonly="1"/>
+                    <field name="ksef_upo_attachment_id" readonly="1"/>
+
+                    <button name="action_ksef_send"
+                            string="Send to KSeF"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="ksef_state in ('sent','accepted')"/>
+                    <button name="action_ksef_check_status"
+                            string="Check KSeF Status"
+                            type="object"
+                            invisible="ksef_state not in ('sent','error')"/>
+
+                    <!-- ADDED: Close session button -->
+                    <button name="action_ksef_close_session"
+                            string="Close KSeF Session"
+                            type="object"
+                            invisible="not ksef_session_id or ksef_session_closed"/>
+
+                    <!-- ADDED: Download UPO button -->
+                    <button name="action_ksef_download_upo"
+                            string="Download UPO"
+                            type="object"
+                            invisible="not ksef_session_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

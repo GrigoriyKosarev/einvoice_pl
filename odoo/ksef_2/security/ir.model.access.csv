@@ -1,0 +1,3 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+ksef_service_user,ksef.service,model_ksef_service,base.group_user,1,1,1,1
+ksef_invoice_user,account.move.ksef,model_account_move,base.group_user,1,1,1,1

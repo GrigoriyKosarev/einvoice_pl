@@ -1,0 +1,266 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ksef_2
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20250918\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-07 10:52+0000\n"
+"PO-Revision-Date: 2025-10-07 10:52+0000\n"
+"Last-Translator: \n"
+"Language-Team: Polish (http://www.transifex.com/odoo/odoo-11/language/pl/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_api_key_id
+msgid ""
+"(Deprecated) Identifier for KSeF 1.x basic authentication. Not used in KSeF "
+"2.0."
+msgstr "(Przestarzałe) Identyfikator dla podstawowego uwierzytelniania KSeF 1.x. Nieużywane w KSeF 2.0."
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_api_key
+msgid ""
+"(Deprecated) Secret key for KSeF 1.x basic authentication. Not used in KSeF "
+"2.0."
+msgstr "(Przestarzałe) Klucz tajny dla podstawowego uwierzytelniania KSeF 1.x. Nieużywane w KSeF 2.0."
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__account_move__ksef_state__accepted
+msgid "Accepted"
+msgstr "Zaakceptowano"
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_account_bank_statement_line__ksef_upo_attachment_id
+#: model:ir.model.fields,help:ksef_2.field_account_move__ksef_upo_attachment_id
+msgid "Attachment created from KSeF UPO for this session."
+msgstr "Załącznik utworzony z UPO KSeF dla tej sesji."
+
+#. module: ksef_2
+#: model_terms:ir.ui.view,arch_db:ksef_2.view_move_form_ksef2
+msgid "Check KSeF Status"
+msgstr "Sprawdź status w KSeF"
+
+#. module: ksef_2
+#: model_terms:ir.ui.view,arch_db:ksef_2.view_move_form_ksef2
+msgid "Close KSeF Session"
+msgstr "Zamknij sesję KSeF"
+
+#. module: ksef_2
+#: model:ir.model,name:ksef_2.model_res_company
+msgid "Companies"
+msgstr "Firmy"
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__res_company__ksef_environment__tr
+msgid "Demo (TR)"
+msgstr "Demo (TR)"
+
+#. module: ksef_2
+#: model_terms:ir.ui.view,arch_db:ksef_2.view_move_form_ksef2
+msgid "Download UPO"
+msgstr "Pobierz UPO"
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__account_move__ksef_state__draft
+msgid "Draft"
+msgstr "Szkic"
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__account_move__ksef_state__error
+msgid "Error"
+msgstr "Błąd"
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_context_identifier
+msgid ""
+"Identifier of the context used to open sessions in KSeF (e.g. company NIP or"
+" delegated token)."
+msgstr "Identyfikator kontekstu używany do otwierania sesji w KSeF (np. NIP firmy lub token delegowany)."
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_account_bank_statement_line__ksef_session_id
+#: model:ir.model.fields,help:ksef_2.field_account_move__ksef_session_id
+msgid ""
+"Identifier of the interactive session in KSeF through which the invoice was "
+"sent."
+msgstr "Identyfikator sesji interaktywnej w KSeF, za pośrednictwem której wysłano fakturę."
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_access_token
+msgid "JWT access token used for Bearer authentication with KSeF 2.0."
+msgstr "Token dostępowy JWT używany do uwierzytelniania typu Bearer w KSeF 2.0."
+
+#. module: ksef_2
+#: model:ir.model,name:ksef_2.model_account_move
+msgid "Journal Entry"
+msgstr "Zapis dziennika"
+
+#. module: ksef_2
+#: model_terms:ir.ui.view,arch_db:ksef_2.view_company_form_ksef2
+#: model_terms:ir.ui.view,arch_db:ksef_2.view_move_form_ksef2
+msgid "KSeF"
+msgstr "KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_api_key
+msgid "KSeF API Key (deprecated)"
+msgstr "Klucz API KSeF (przestarzałe)"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_api_key_id
+msgid "KSeF API Key ID (deprecated)"
+msgstr "ID klucza API KSeF (przestarzałe)"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_access_token
+msgid "KSeF Access Token"
+msgstr "Token dostępowy KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_context_identifier
+msgid "KSeF Context Identifier"
+msgstr "Identyfikator kontekstu KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_environment
+msgid "KSeF Environment"
+msgstr "Środowisko KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_account_bank_statement_line__ksef_invoice_number
+#: model:ir.model.fields,field_description:ksef_2.field_account_move__ksef_invoice_number
+msgid "KSeF Invoice Number"
+msgstr "Numer faktury KSeF"
+
+#. module: ksef_2
+#: model:ir.model,name:ksef_2.model_ksef_service
+msgid "KSeF REST API Service"
+msgstr "Usługa REST API KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_refresh_token
+msgid "KSeF Refresh Token"
+msgstr "Token odświeżający KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_account_bank_statement_line__ksef_session_closed
+#: model:ir.model.fields,field_description:ksef_2.field_account_move__ksef_session_closed
+msgid "KSeF Session Closed"
+msgstr "Sesja KSeF zamknięta"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_account_bank_statement_line__ksef_session_id
+#: model:ir.model.fields,field_description:ksef_2.field_account_move__ksef_session_id
+msgid "KSeF Session ID"
+msgstr "ID sesji KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_account_bank_statement_line__ksef_state
+#: model:ir.model.fields,field_description:ksef_2.field_account_move__ksef_state
+msgid "KSeF Status"
+msgstr "Status KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_res_company__ksef_token
+msgid "KSeF System Token"
+msgstr "Token systemowy KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_account_bank_statement_line__ksef_invoice_id
+#: model:ir.model.fields,field_description:ksef_2.field_account_move__ksef_invoice_id
+msgid "KSeF Technical Invoice ID"
+msgstr "Techniczny ID faktury KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields,field_description:ksef_2.field_account_bank_statement_line__ksef_upo_attachment_id
+#: model:ir.model.fields,field_description:ksef_2.field_account_move__ksef_upo_attachment_id
+msgid "KSeF UPO Attachment"
+msgstr "Załącznik UPO KSeF"
+
+#. module: ksef_2
+#. odoo-python
+#: code:addons/ksef_2/models/account_move.py:0
+msgid "No KSeF session reference on this invoice."
+msgstr "Brak odniesienia do sesji KSeF na tej fakturze."
+
+#. module: ksef_2
+#. odoo-python
+#: code:addons/ksef_2/models/account_move.py:0
+msgid "Only customer invoices and credit notes can be sent to KSeF."
+msgstr "Do KSeF można wysyłać tylko faktury sprzedaży i faktury korygujące."
+
+#. module: ksef_2
+#. odoo-python
+#: code:addons/ksef_2/models/account_move.py:0
+msgid "Only customer invoices and credit notes can use KSeF actions."
+msgstr "Tylko faktury sprzedaży i faktury korygujące mogą używać akcji KSeF."
+
+#. module: ksef_2
+#. odoo-python
+#: code:addons/ksef_2/models/account_move.py:0
+msgid "Please configure a KSeF access token on the company."
+msgstr "Proszę skonfigurować token dostępowy KSeF w ustawieniach firmy."
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__res_company__ksef_environment__prd
+msgid "Production (PRD)"
+msgstr "Produkcyjne (PRD)"
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_refresh_token
+msgid "Refresh token used to obtain a new access token."
+msgstr "Token odświeżający używany do uzyskania nowego tokena dostępowego."
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_environment
+msgid ""
+"Select the KSeF API environment to use: TE (test), TR (demo) or PRD "
+"(production)."
+msgstr "Wybierz środowisko API KSeF: TE (testowe), TR (demo) lub PRD (produkcyjne)."
+
+#. module: ksef_2
+#: model_terms:ir.ui.view,arch_db:ksef_2.view_move_form_ksef2
+msgid "Send to KSeF"
+msgstr "Wyślij do KSeF"
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__account_move__ksef_state__sent
+msgid "Sent"
+msgstr "Wysłano"
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_res_company__ksef_token
+msgid "System token used in the token-based authentication flow."
+msgstr "Token systemowy używany w procesie uwierzytelniania opartym na tokenie."
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_account_bank_statement_line__ksef_invoice_id
+#: model:ir.model.fields,help:ksef_2.field_account_move__ksef_invoice_id
+msgid ""
+"Technical identifier returned by KSeF when the invoice is accepted for "
+"processing. Use this to check processing status."
+msgstr "Identyfikator techniczny zwracany przez KSeF, gdy faktura zostanie przyjęta do przetwarzania. Użyj go do sprawdzania statusu przetwarzania."
+
+#. module: ksef_2
+#: model:ir.model.fields.selection,name:ksef_2.selection__res_company__ksef_environment__te
+msgid "Test (TE)"
+msgstr "Testowe (TE)"
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_account_bank_statement_line__ksef_session_closed
+#: model:ir.model.fields,help:ksef_2.field_account_move__ksef_session_closed
+msgid "True if the interactive KSeF session has been closed."
+msgstr "Prawda, jeśli interaktywna sesja KSeF została zamknięta."
+
+#. module: ksef_2
+#: model:ir.model.fields,help:ksef_2.field_account_bank_statement_line__ksef_invoice_number
+#: model:ir.model.fields,help:ksef_2.field_account_move__ksef_invoice_number
+msgid ""
+"Unique KSeF number assigned to the invoice when it is fully processed in "
+"KSeF."
+msgstr "Unikalny numer KSeF przypisany do faktury po jej pełnym przetworzeniu w KSeF."
