@@ -178,6 +178,10 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
             f'            <P_7>{_escape_xml(line["name"])}</P_7>',
         ])
 
+        # index - код товару
+        if line.get('index'):
+            xml_parts.append(f'            <Indeks>{_escape_xml(line["index"])}</Indeks>')
+
         # P_8A - Miara (одиниця виміру)
         if line.get('unit'):
             xml_parts.append(f'            <P_8A>{_escape_xml(line["unit"])}</P_8A>')
