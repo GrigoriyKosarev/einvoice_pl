@@ -96,8 +96,16 @@ class KSefSendInvoice(models.TransientModel):
             # Get unit of measure in Polish (required by KSeF)
             unit = line.product_uom_id.with_context(lang=company_lang).name if line.product_uom_id else 'szt'
 
-            product_name = line.name or line.product_id.name or 'Product/Service'
             # product_name = product_name.replace('[', '').replace(']', '')
+            try:
+                product_name = line.sh_line_customer_product_name or line.name or line.product_id.name or 'Product/Service'
+            except:
+                product_name = line.name or line.product_id.name or 'Product/Service'
+
+            try:
+                product_index = line.sh_line_customer_code or line.product_id.default_code or ""
+            except:
+                product_index = line.product_id.default_code or ""
 
             # Calculate discount for P_10 field
             discount_percent = line.discount if line.discount else 0.0
@@ -105,13 +113,12 @@ class KSefSendInvoice(models.TransientModel):
             original_price = line.price_unit
 
             if discount_percent > 0:
-                # Calculate original price before discount
-                original_price = line.price_unit / (1 - discount_percent / 100)
                 # Calculate total discount amount for this line
-                discount_amount = (original_price - line.price_unit) * line.quantity
+                discount_amount = line.price_unit * line.quantity - line.price_subtotal
 
             line_data = {
                 'name': product_name,
+                'index': product_index,
                 'quantity': line.quantity,
                 'unit': unit,
                 'price_unit': original_price,  # P_9A - original price before discount
