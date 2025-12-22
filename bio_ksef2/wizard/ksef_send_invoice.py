@@ -99,12 +99,24 @@ class KSefSendInvoice(models.TransientModel):
             product_name = line.name or line.product_id.name or 'Product/Service'
             # product_name = product_name.replace('[', '').replace(']', '')
 
+            # Calculate discount for P_10 field
+            discount_percent = line.discount if line.discount else 0.0
+            discount_amount = 0.0
+            original_price = line.price_unit
+
+            if discount_percent > 0:
+                # Calculate original price before discount
+                original_price = line.price_unit / (1 - discount_percent / 100)
+                # Calculate total discount amount for this line
+                discount_amount = (original_price - line.price_unit) * line.quantity
+
             line_data = {
                 'name': product_name,
                 'quantity': line.quantity,
                 'unit': unit,
-                'price_unit': line.price_unit,
-                'net_amount': line.price_subtotal,
+                'price_unit': original_price,  # P_9A - original price before discount
+                'discount_amount': discount_amount,  # P_10 - discount amount
+                'net_amount': line.price_subtotal,  # P_11 - final amount after discount
                 'vat_rate': vat_rate,
                 'vat_amount': line.price_total - line.price_subtotal,
                 'gross_amount': line.price_total,

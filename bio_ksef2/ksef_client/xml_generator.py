@@ -167,8 +167,9 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     # Згідно з офіційним XSD:
     # P_8A - Miara (одиниця виміру, ТЕКСТ)
     # P_8B - Ilość (кількість, ЧИСЛО)
-    # P_9A - Cena jednostkowa netto (ціна за одиницю без ПДВ)
-    # P_11 - Wartość sprzedaży netto (загальна сума без ПДВ)
+    # P_9A - Cena jednostkowa netto (ціна за одиницю без ПДВ - оригінальна ціна до знижки)
+    # P_10 - Wartość rabatów lub opustów (сума знижки, опціонально)
+    # P_11 - Wartość sprzedaży netto (загальна сума після знижки без ПДВ)
     # P_12 - Stawka podatku (ставка ПДВ %)
     for idx, line in enumerate(invoice_data['lines'], start=1):
         xml_parts.extend([
@@ -185,11 +186,15 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('quantity'):
             xml_parts.append(f'            <P_8B>{line["quantity"]:.2f}</P_8B>')
 
-        # P_9A - Cena jednostkowa netto (ціна за одиницю без ПДВ)
+        # P_9A - Cena jednostkowa netto (ціна за одиницю без ПДВ - оригінальна ціна)
         if line.get('price_unit') is not None:
             xml_parts.append(f'            <P_9A>{line["price_unit"]:.2f}</P_9A>')
 
-        # P_11 - Wartość sprzedaży netto (загальна сума без ПДВ)
+        # P_10 - Wartość rabatów lub opustów (сума знижок)
+        if line.get('discount_amount') and line['discount_amount'] > 0:
+            xml_parts.append(f'            <P_10>{line["discount_amount"]:.2f}</P_10>')
+
+        # P_11 - Wartość sprzedaży netto (загальна сума після знижки без ПДВ)
         xml_parts.append(f'            <P_11>{line["net_amount"]:.2f}</P_11>')
 
         # P_12 - Stawka podatku (ставка ПДВ %)
