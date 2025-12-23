@@ -130,6 +130,9 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     currency_rate = invoice_data.get('currency_rate', 1.0)
     is_foreign_currency = invoice_data.get('is_foreign_currency', False)
 
+    # Check if invoice contains WDT procedure
+    has_wdt = any(line.get('procedure') == 'WDT' for line in invoice_data['lines'])
+
     vat_summary = _calculate_vat_summary(invoice_data['lines'], currency_rate if is_foreign_currency else None)
     for vat_rate, amounts in vat_summary.items():
         if vat_rate == 23:
@@ -142,7 +145,11 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
             xml_parts.append(f'        <P_13_3>{amounts["net"]:.2f}</P_13_3>')
             xml_parts.append(f'        <P_14_3>{amounts["vat"]:.2f}</P_14_3>')
         elif vat_rate == 0:
-            xml_parts.append(f'        <P_13_4>{amounts["net"]:.2f}</P_13_4>')
+            # Use P_13_6_2 for WDT (intra-EU supply), P_13_4 for other 0% cases
+            if has_wdt:
+                xml_parts.append(f'        <P_13_6_2>{amounts["net"]:.2f}</P_13_6_2>')
+            else:
+                xml_parts.append(f'        <P_13_4>{amounts["net"]:.2f}</P_13_4>')
 
     # Загальна сума (in PLN for foreign currency)
     total_gross = invoice_data.get('total_gross_pln', invoice_data['total_gross'])
