@@ -219,6 +219,10 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('currency_rate'):
             xml_parts.append(f'            <KursWaluty>{line["currency_rate"]:.8f}</KursWaluty>')
 
+        # Procedura - WDT (внутрішньоспільнотна поставка), EE, TP тощо
+        if line.get('procedure'):
+            xml_parts.append(f'            <Procedura>{line["procedure"]}</Procedura>')
+
         xml_parts.append('        </FaWiersz>')
 
     # Закриваємо XML
