@@ -58,15 +58,16 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     # Визначаємо параметри формату
-    # ⚠️ ВАЖЛИВО: FA(3) використовує ТУ САМУ XML структуру що й FA(2)!
-    # Згідно з офіційним XSD, навіть для FA(3) потрібно:
-    # - kodSystemowy = "FA (2)"
-    # - WariantFormularza = "2"
-    # FA(3) відрізняється тільки датами валідності (обов'язковий з 01.02.2026)
-    namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
-    kod_systemowy = 'FA (2)'  # Завжди "FA (2)", навіть для FA(3)!
-    wariant = '2'  # Завжди "2", навіть для FA(3)!
-    wersja_schemy = '1-0E'
+    if format_version == 'FA3':
+        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'  # FA(3) може мати інший namespace
+        kod_systemowy = 'FA (3)'
+        wariant = '3'
+        wersja_schemy = '1-0E'
+    else:  # FA2 за замовчуванням
+        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
+        kod_systemowy = 'FA (2)'
+        wariant = '2'
+        wersja_schemy = '1-0E'
 
     # Початок XML
     xml_parts = [
