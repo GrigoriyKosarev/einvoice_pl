@@ -154,8 +154,10 @@ class KSefSendInvoice(models.TransientModel):
         # Calculate total VAT
         invoice_data['total_vat'] = invoice_data['total_gross'] - invoice_data['total_net']
 
-        # IMPORTANT: If foreign currency, convert totals to PLN for KSeF
-        # According to Polish VAT law, summary fields P_13_X, P_14_X, P_15 must be in PLN
+        # NOTE: For foreign currency invoices, we keep PLN equivalents for internal accounting
+        # However, in KSeF XML:
+        # - P_13_*, P_14_*, P_15 remain in document currency (e.g., EUR)
+        # - Only P_14_*W fields contain VAT converted to PLN (per art. 106e ust. 11)
         if is_foreign_currency:
             invoice_data['total_net_pln'] = invoice_data['total_net'] * currency_rate
             invoice_data['total_vat_pln'] = invoice_data['total_vat'] * currency_rate

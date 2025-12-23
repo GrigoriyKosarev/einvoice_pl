@@ -155,7 +155,8 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     ])
 
     # Підсумки за ставками ПДВ
-    # IMPORTANT: For foreign currency, convert to PLN using currency_rate
+    # IMPORTANT: Amounts in P_13_*, P_14_*, P_15 must be in document currency (e.g., EUR)
+    # Only P_14_*W fields contain VAT converted to PLN for foreign currency invoices
     currency_rate = invoice_data.get('currency_rate', 1.0)
     is_foreign_currency = invoice_data.get('is_foreign_currency', False)
 
@@ -164,26 +165,41 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     eu_countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE']
     is_wdt = buyer_country != 'PL' and buyer_country in eu_countries
 
-    vat_summary = _calculate_vat_summary(invoice_data['lines'], currency_rate if is_foreign_currency else None)
+    # Calculate VAT summary in document currency (NO conversion to PLN)
+    vat_summary = _calculate_vat_summary(invoice_data['lines'], currency_rate=None)
+
     for vat_rate, amounts in vat_summary.items():
         if vat_rate == 23:
             xml_parts.append(f'        <P_13_1>{amounts["net"]:.2f}</P_13_1>')
             xml_parts.append(f'        <P_14_1>{amounts["vat"]:.2f}</P_14_1>')
+            # P_14_1W - VAT amount converted to PLN (art. 106e ust. 11)
+            if is_foreign_currency:
+                vat_pln = amounts["vat"] * currency_rate
+                xml_parts.append(f'        <P_14_1W>{vat_pln:.2f}</P_14_1W>')
         elif vat_rate == 8:
             xml_parts.append(f'        <P_13_2>{amounts["net"]:.2f}</P_13_2>')
             xml_parts.append(f'        <P_14_2>{amounts["vat"]:.2f}</P_14_2>')
+            # P_14_2W - VAT amount converted to PLN (art. 106e ust. 11)
+            if is_foreign_currency:
+                vat_pln = amounts["vat"] * currency_rate
+                xml_parts.append(f'        <P_14_2W>{vat_pln:.2f}</P_14_2W>')
         elif vat_rate == 5:
             xml_parts.append(f'        <P_13_3>{amounts["net"]:.2f}</P_13_3>')
             xml_parts.append(f'        <P_14_3>{amounts["vat"]:.2f}</P_14_3>')
+            # P_14_3W - VAT amount converted to PLN (art. 106e ust. 11)
+            if is_foreign_currency:
+                vat_pln = amounts["vat"] * currency_rate
+                xml_parts.append(f'        <P_14_3W>{vat_pln:.2f}</P_14_3W>')
         elif vat_rate == 0:
             # Use P_13_6_2 for WDT (intra-EU supply), P_13_4 for other 0% cases
+            # No P_14_* fields for 0% VAT
             if is_wdt:
                 xml_parts.append(f'        <P_13_6_2>{amounts["net"]:.2f}</P_13_6_2>')
             else:
                 xml_parts.append(f'        <P_13_4>{amounts["net"]:.2f}</P_13_4>')
 
-    # Загальна сума (in PLN for foreign currency)
-    total_gross = invoice_data.get('total_gross_pln', invoice_data['total_gross'])
+    # Загальна сума (in document currency, e.g., EUR)
+    total_gross = invoice_data['total_gross']
     xml_parts.append(f'        <P_15>{total_gross:.2f}</P_15>')
 
     # Currency exchange rate (if foreign currency)
@@ -327,11 +343,14 @@ def _escape_xml(text: str) -> str:
 
 def _calculate_vat_summary(lines: List[Dict[str, Any]], currency_rate: float = None) -> Dict[int, Dict[str, float]]:
     """
-    Підраховує підсумки за ставками ПДВ
+    Підраховує підсумки за ставками ПДВ в валюті документа
 
     Args:
         lines: Рядки інвойсу
-        currency_rate: Курс валюти для конвертації в PLN (якщо None - без конвертації)
+        currency_rate: DEPRECATED - не використовується (суми завжди в валюті документа)
+
+    Returns:
+        Dict з підсумками за ставками ПДВ в валюті документа
     """
     summary = {}
     for line in lines:
@@ -339,11 +358,10 @@ def _calculate_vat_summary(lines: List[Dict[str, Any]], currency_rate: float = N
         if vat_rate not in summary:
             summary[vat_rate] = {'net': 0.0, 'vat': 0.0, 'gross': 0.0}
 
-        # Apply currency conversion if needed
-        multiplier = currency_rate if currency_rate else 1.0
-
-        summary[vat_rate]['net'] += line.get('net_amount', 0.0) * multiplier
-        summary[vat_rate]['vat'] += line.get('vat_amount', 0.0) * multiplier
-        summary[vat_rate]['gross'] += line.get('gross_amount', 0.0) * multiplier
+        # NO currency conversion - amounts stay in document currency (e.g., EUR)
+        # Conversion to PLN only happens for P_14_*W fields in the main XML generation
+        summary[vat_rate]['net'] += line.get('net_amount', 0.0)
+        summary[vat_rate]['vat'] += line.get('vat_amount', 0.0)
+        summary[vat_rate]['gross'] += line.get('gross_amount', 0.0)
 
     return summary
