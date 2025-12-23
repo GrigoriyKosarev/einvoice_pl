@@ -99,14 +99,43 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
     # Покупець (Podmiot2)
     buyer = invoice_data['buyer']
+    buyer_country = buyer.get("country", "PL")
+    buyer_nip = buyer.get("nip", "")
+
+    # List of EU countries for VAT-UE format
+    eu_countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE']
+
     xml_parts.extend([
         '    <Podmiot2>',
         '        <DaneIdentyfikacyjne>',
-        f'            <NIP>{_clean_nip(buyer["nip"])}</NIP>',
+    ])
+
+    # For EU buyers (not Poland), use KodUE + NrVatUE structure
+    if buyer_country != 'PL' and buyer_country in eu_countries and buyer_nip:
+        # Remove country prefix from VAT number (e.g., LT123456789 -> 123456789)
+        clean_vat = _clean_nip(buyer_nip)
+        xml_parts.extend([
+            f'            <KodUE>{buyer_country}</KodUE>',
+            f'            <NrVatUE>{clean_vat}</NrVatUE>',
+        ])
+    elif buyer_country == 'PL' and buyer_nip:
+        # Polish buyer - use NIP
+        xml_parts.append(f'            <NIP>{_clean_nip(buyer_nip)}</NIP>')
+    elif buyer_nip:
+        # Non-EU buyer with tax ID - use KodKraju + NrID
+        xml_parts.extend([
+            f'            <KodKraju>{buyer_country}</KodKraju>',
+            f'            <NrID>{_clean_nip(buyer_nip)}</NrID>',
+        ])
+    else:
+        # No tax ID
+        xml_parts.append('            <BrakID>1</BrakID>')
+
+    xml_parts.extend([
         f'            <Nazwa>{_escape_xml(buyer["name"])}</Nazwa>',
         '        </DaneIdentyfikacyjne>',
         '        <Adres>',
-        f'            <KodKraju>{buyer.get("country", "PL")}</KodKraju>',
+        f'            <KodKraju>{buyer_country}</KodKraju>',
         f'            <AdresL1>{_escape_xml(buyer.get("street", ""))}</AdresL1>',
         f'            <AdresL2>{buyer.get("zip", "")} {_escape_xml(buyer.get("city", ""))}</AdresL2>',
         '        </Adres>',
