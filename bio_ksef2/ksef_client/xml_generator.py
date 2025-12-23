@@ -159,8 +159,10 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     currency_rate = invoice_data.get('currency_rate', 1.0)
     is_foreign_currency = invoice_data.get('is_foreign_currency', False)
 
-    # Check if invoice contains WDT procedure
-    has_wdt = any(line.get('procedure') == 'WDT' for line in invoice_data['lines'])
+    # Determine if this is WDT (intra-EU supply) invoice
+    # WDT = buyer from EU (not PL) + 0% VAT rate
+    eu_countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE']
+    is_wdt = buyer_country != 'PL' and buyer_country in eu_countries
 
     vat_summary = _calculate_vat_summary(invoice_data['lines'], currency_rate if is_foreign_currency else None)
     for vat_rate, amounts in vat_summary.items():
@@ -175,7 +177,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
             xml_parts.append(f'        <P_14_3>{amounts["vat"]:.2f}</P_14_3>')
         elif vat_rate == 0:
             # Use P_13_6_2 for WDT (intra-EU supply), P_13_4 for other 0% cases
-            if has_wdt:
+            if is_wdt:
                 xml_parts.append(f'        <P_13_6_2>{amounts["net"]:.2f}</P_13_6_2>')
             else:
                 xml_parts.append(f'        <P_13_4>{amounts["net"]:.2f}</P_13_4>')
@@ -199,7 +201,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     ])
 
     # For WDT (intra-EU supply), indicate VAT exemption with legal basis
-    if has_wdt:
+    if is_wdt:
         xml_parts.extend([
             '                <P_19>1</P_19>',
             '                <P_19A>art. 42 ust. 1 ustawy</P_19A>',
@@ -262,7 +264,9 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('vat_rate') is not None:
             xml_parts.append(f'            <P_12>{line["vat_rate"]}</P_12>')
 
-        # Procedura - WDT (внутрішньоспільнотна поставка), EE, TP тощо
+        # Procedura - Special procedures (optional)
+        # NOTE: WDT (intra-EU supply) does NOT use Procedura field
+        # Valid values: WSTO_EE, IED, TT_D, I_42, I_63, B_SPV, B_SPV_DOSTAWA, B_MPV_PROWIZJA
         # IMPORTANT: Must come BEFORE KursWaluty according to XSD sequence
         if line.get('procedure'):
             xml_parts.append(f'            <Procedura>{line["procedure"]}</Procedura>')
