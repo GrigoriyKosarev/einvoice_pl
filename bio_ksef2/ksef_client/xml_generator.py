@@ -11,6 +11,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     Args:
         invoice_data: Словник з даними інвойсу:
         format_version: Версія формату ('FA2' або 'FA3')
+                        ⚠️ FA(3) = FA(2) структурно! Обидва генерують kodSystemowy="FA (2)"
             {
                 'invoice_number': str,
                 'issue_date': str (YYYY-MM-DD),
@@ -125,7 +126,11 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     ])
 
     # Підсумки за ставками ПДВ
-    vat_summary = _calculate_vat_summary(invoice_data['lines'])
+    # IMPORTANT: For foreign currency, convert to PLN using currency_rate
+    currency_rate = invoice_data.get('currency_rate', 1.0)
+    is_foreign_currency = invoice_data.get('is_foreign_currency', False)
+
+    vat_summary = _calculate_vat_summary(invoice_data['lines'], currency_rate if is_foreign_currency else None)
     for vat_rate, amounts in vat_summary.items():
         if vat_rate == 23:
             xml_parts.append(f'        <P_13_1>{amounts["net"]:.2f}</P_13_1>')
@@ -139,8 +144,13 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         elif vat_rate == 0:
             xml_parts.append(f'        <P_13_4>{amounts["net"]:.2f}</P_13_4>')
 
-    # Загальна сума
-    xml_parts.append(f'        <P_15>{invoice_data["total_gross"]:.2f}</P_15>')
+    # Загальна сума (in PLN for foreign currency)
+    total_gross = invoice_data.get('total_gross_pln', invoice_data['total_gross'])
+    xml_parts.append(f'        <P_15>{total_gross:.2f}</P_15>')
+
+    # Currency exchange rate (if foreign currency)
+    if is_foreign_currency and currency_rate:
+        xml_parts.append(f'        <KursWalutyZ>{currency_rate:.8f}</KursWalutyZ>')
 
     # Adnotacje (обов'язкові анотації)
     xml_parts.extend([
@@ -205,6 +215,10 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('vat_rate') is not None:
             xml_parts.append(f'            <P_12>{line["vat_rate"]}</P_12>')
 
+        # KursWaluty - Курс валюти (для іноземної валюти)
+        if line.get('currency_rate'):
+            xml_parts.append(f'            <KursWaluty>{line["currency_rate"]:.8f}</KursWaluty>')
+
         xml_parts.append('        </FaWiersz>')
 
     # Закриваємо XML
@@ -240,16 +254,25 @@ def _escape_xml(text: str) -> str:
             .replace("'", '&apos;'))
 
 
-def _calculate_vat_summary(lines: List[Dict[str, Any]]) -> Dict[int, Dict[str, float]]:
-    """Підраховує підсумки за ставками ПДВ"""
+def _calculate_vat_summary(lines: List[Dict[str, Any]], currency_rate: float = None) -> Dict[int, Dict[str, float]]:
+    """
+    Підраховує підсумки за ставками ПДВ
+
+    Args:
+        lines: Рядки інвойсу
+        currency_rate: Курс валюти для конвертації в PLN (якщо None - без конвертації)
+    """
     summary = {}
     for line in lines:
         vat_rate = line.get('vat_rate', 23)
         if vat_rate not in summary:
             summary[vat_rate] = {'net': 0.0, 'vat': 0.0, 'gross': 0.0}
 
-        summary[vat_rate]['net'] += line.get('net_amount', 0.0)
-        summary[vat_rate]['vat'] += line.get('vat_amount', 0.0)
-        summary[vat_rate]['gross'] += line.get('gross_amount', 0.0)
+        # Apply currency conversion if needed
+        multiplier = currency_rate if currency_rate else 1.0
+
+        summary[vat_rate]['net'] += line.get('net_amount', 0.0) * multiplier
+        summary[vat_rate]['vat'] += line.get('vat_amount', 0.0) * multiplier
+        summary[vat_rate]['gross'] += line.get('gross_amount', 0.0) * multiplier
 
     return summary

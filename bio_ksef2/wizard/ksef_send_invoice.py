@@ -46,6 +46,11 @@ class KSefSendInvoice(models.TransientModel):
         company_lang = 'pl_PL'
         issue_date = invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else datetime.today().strftime('%Y-%m-%d')
 
+        # Get currency exchange rate
+        # Odoo already calculates and stores currency_rate in invoice
+        is_foreign_currency = invoice.currency_id != invoice.company_id.currency_id
+        currency_rate = invoice.currency_rate if is_foreign_currency else None
+
         # Prepare invoice data
         invoice_data = {
             'invoice_number': invoice.name,
@@ -53,6 +58,8 @@ class KSefSendInvoice(models.TransientModel):
             'sale_date': issue_date,
             'payment_date': invoice.invoice_date_due.strftime('%Y-%m-%d') if invoice.invoice_date_due else issue_date,
             'currency': invoice.currency_id.name or 'PLN',
+            'currency_rate': currency_rate if is_foreign_currency else None,
+            'is_foreign_currency': is_foreign_currency,
 
             # Seller data (company)
             'seller': {
@@ -121,12 +128,13 @@ class KSefSendInvoice(models.TransientModel):
                 'index': product_index,
                 'quantity': line.quantity,
                 'unit': unit,
-                'price_unit': original_price,  # P_9A - original price before discount
-                'discount_amount': discount_amount,  # P_10 - discount amount
-                'net_amount': line.price_subtotal,  # P_11 - final amount after discount
+                'price_unit': original_price,  # P_9A - original price before discount (in invoice currency)
+                'discount_amount': discount_amount,  # P_10 - discount amount (in invoice currency)
+                'net_amount': line.price_subtotal,  # P_11 - final amount after discount (in invoice currency)
                 'vat_rate': vat_rate,
                 'vat_amount': line.price_total - line.price_subtotal,
                 'gross_amount': line.price_total,
+                'currency_rate': currency_rate if is_foreign_currency else None,  # Exchange rate for this line
             }
 
             invoice_data['lines'].append(line_data)
@@ -134,6 +142,17 @@ class KSefSendInvoice(models.TransientModel):
 
         # Calculate total VAT
         invoice_data['total_vat'] = invoice_data['total_gross'] - invoice_data['total_net']
+
+        # IMPORTANT: If foreign currency, convert totals to PLN for KSeF
+        # According to Polish VAT law, summary fields P_13_X, P_14_X, P_15 must be in PLN
+        if is_foreign_currency:
+            invoice_data['total_net_pln'] = invoice_data['total_net'] * currency_rate
+            invoice_data['total_vat_pln'] = invoice_data['total_vat'] * currency_rate
+            invoice_data['total_gross_pln'] = invoice_data['total_gross'] * currency_rate
+        else:
+            invoice_data['total_net_pln'] = invoice_data['total_net']
+            invoice_data['total_vat_pln'] = invoice_data['total_vat']
+            invoice_data['total_gross_pln'] = invoice_data['total_gross']
 
         # Get config to determine format version
         config = self.env['ksef.config'].get_config(invoice.company_id.id)
