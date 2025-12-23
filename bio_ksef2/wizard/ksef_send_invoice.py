@@ -223,9 +223,17 @@ class KSefSendInvoice(models.TransientModel):
 
             if status:
                 status_info = status.get('status', {})
+
+                # Build detailed error message including details array
+                status_description = status_info.get('description', '')
+                details = status_info.get('details', [])
+                if details:
+                    details_str = '\n\n' + '\n'.join(f'• {detail}' for detail in details)
+                    status_description += details_str
+
                 vals.update({
                     'ksef_status_code': status_info.get('code'),
-                    'ksef_status_description': status_info.get('description'),
+                    'ksef_status_description': status_description,
                     'ksef_number': status.get('ksefNumber'),
                 })
 

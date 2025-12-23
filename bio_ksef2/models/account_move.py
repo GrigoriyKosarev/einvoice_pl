@@ -102,9 +102,17 @@ class AccountMove(models.Model):
 
             if status:
                 status_info = status.get('status', {})
+
+                # Build detailed error message including details array
+                status_description = status_info.get('description', '')
+                details = status_info.get('details', [])
+                if details:
+                    details_str = '\n\n' + '\n'.join(f'• {detail}' for detail in details)
+                    status_description += details_str
+
                 self.write({
                     'ksef_status_code': status_info.get('code'),
-                    'ksef_status_description': status_info.get('description'),
+                    'ksef_status_description': status_description,
                     'ksef_number': status.get('ksefNumber'),
                 })
 
@@ -113,15 +121,10 @@ class AccountMove(models.Model):
                     message = _('KSeF Status: Accepted\nKSeF Number: %s') % self.ksef_number
                 elif status_info.get('code', 0) >= 400:
                     self.ksef_status = 'rejected'
-                    details = status_info.get('details', [])
-                    details_str = '\n'.join(details) if details else ''
-                    message = _('KSeF Status: Rejected\nReason: %s\nDetails: %s') % (
-                        status_info.get('description'),
-                        details_str
-                    )
+                    message = _('KSeF Status: Rejected\n%s') % self.ksef_status_description
                 else:
                     self.ksef_status = 'pending'
-                    message = _('KSeF Status: %s') % status_info.get('description')
+                    message = _('KSeF Status: %s') % self.ksef_status_description
 
                 return {
                     'type': 'ir.actions.client',
