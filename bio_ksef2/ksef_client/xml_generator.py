@@ -262,13 +262,15 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('vat_rate') is not None:
             xml_parts.append(f'            <P_12>{line["vat_rate"]}</P_12>')
 
-        # KursWaluty - Курс валюти (для іноземної валюти)
-        if line.get('currency_rate'):
-            xml_parts.append(f'            <KursWaluty>{_format_currency_rate(line["currency_rate"])}</KursWaluty>')
-
         # Procedura - WDT (внутрішньоспільнотна поставка), EE, TP тощо
+        # IMPORTANT: Must come BEFORE KursWaluty according to XSD sequence
         if line.get('procedure'):
             xml_parts.append(f'            <Procedura>{line["procedure"]}</Procedura>')
+
+        # KursWaluty - Курс валюти (для іноземної валюти)
+        # IMPORTANT: Must come AFTER Procedura according to XSD sequence
+        if line.get('currency_rate'):
+            xml_parts.append(f'            <KursWaluty>{_format_currency_rate(line["currency_rate"])}</KursWaluty>')
 
         xml_parts.append('        </FaWiersz>')
 
