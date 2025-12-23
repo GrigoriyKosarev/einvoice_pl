@@ -186,7 +186,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
     # Currency exchange rate (if foreign currency)
     if is_foreign_currency and currency_rate:
-        xml_parts.append(f'        <KursWalutyZ>{currency_rate:.8f}</KursWalutyZ>')
+        xml_parts.append(f'        <KursWalutyZ>{_format_currency_rate(currency_rate)}</KursWalutyZ>')
 
     # Adnotacje (обов'язкові анотації)
     xml_parts.extend([
@@ -264,7 +264,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
         # KursWaluty - Курс валюти (для іноземної валюти)
         if line.get('currency_rate'):
-            xml_parts.append(f'            <KursWaluty>{line["currency_rate"]:.8f}</KursWaluty>')
+            xml_parts.append(f'            <KursWaluty>{_format_currency_rate(line["currency_rate"])}</KursWaluty>')
 
         # Procedura - WDT (внутрішньоспільнотна поставка), EE, TP тощо
         if line.get('procedure'):
@@ -287,6 +287,20 @@ def _clean_nip(nip: str) -> str:
         return ''
     # Видаляємо PL, pl, пробіли, дефіси
     return nip.replace('PL', '').replace('pl', '').replace(' ', '').replace('-', '').strip()
+
+
+def _format_currency_rate(rate: float) -> str:
+    """
+    Форматує курс валюти згідно з XSD вимогами для TIlosci
+
+    TIlosci дозволяє максимум 6 знаків після коми
+    Pattern: -?([1-9]\d{0,15}|0)(\.\d{1,6})?
+    """
+    # Format with 6 decimal places max
+    formatted = f'{rate:.6f}'
+    # Remove trailing zeros and decimal point if not needed
+    formatted = formatted.rstrip('0').rstrip('.')
+    return formatted
 
 
 def _escape_xml(text: str) -> str:
