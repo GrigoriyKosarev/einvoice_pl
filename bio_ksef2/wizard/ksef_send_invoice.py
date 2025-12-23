@@ -47,20 +47,9 @@ class KSefSendInvoice(models.TransientModel):
         issue_date = invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else datetime.today().strftime('%Y-%m-%d')
 
         # Get currency exchange rate
-        company_currency = invoice.company_id.currency_id
-        invoice_currency = invoice.currency_id
-        currency_rate = 1.0
-        is_foreign_currency = invoice_currency != company_currency
-
-        if is_foreign_currency:
-            # Calculate currency rate: how many PLN for 1 unit of foreign currency
-            # Use invoice date for rate calculation
-            currency_rate = company_currency._get_conversion_rate(
-                invoice_currency,
-                company_currency,
-                invoice.company_id,
-                invoice.invoice_date or datetime.today()
-            )
+        # Odoo already calculates and stores currency_rate in invoice
+        is_foreign_currency = invoice.currency_id != invoice.company_id.currency_id
+        currency_rate = invoice.currency_rate if is_foreign_currency else None
 
         # Prepare invoice data
         invoice_data = {
