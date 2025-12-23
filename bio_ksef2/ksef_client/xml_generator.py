@@ -167,7 +167,18 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         '            <P_18>2</P_18>',
         '            <P_18A>2</P_18A>',
         '            <Zwolnienie>',
-        '                <P_19N>1</P_19N>',
+    ])
+
+    # For WDT (intra-EU supply), indicate VAT exemption with legal basis
+    if has_wdt:
+        xml_parts.extend([
+            '                <P_19>1</P_19>',
+            '                <P_19A>art. 42 ust. 1 ustawy</P_19A>',
+        ])
+    else:
+        xml_parts.append('                <P_19N>1</P_19N>')
+
+    xml_parts.extend([
         '            </Zwolnienie>',
         '            <NoweSrodkiTransportu>',
         '                <P_22N>1</P_22N>',
