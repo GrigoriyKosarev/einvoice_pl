@@ -123,14 +123,15 @@ class KSefSendInvoice(models.TransientModel):
                 # Calculate total discount amount for this line
                 discount_amount = line.price_unit * line.quantity - line.price_subtotal
 
-            # Determine procedure (WDT for intra-EU supply with 0% VAT)
+            # Determine procedure
+            # Note: WDT (intra-EU supply) does NOT use the Procedura field.
+            # It's indicated by P_13_6_2 in VAT summary and P_19/P_19A annotations.
             procedure = None
-            buyer_country = invoice.partner_id.country_id.code if invoice.partner_id.country_id else 'PL'
-            eu_countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE']
 
-            # WDT - Wewnątrzwspólnotowa Dostawa Towarów (Intra-EU supply of goods)
-            if buyer_country != 'PL' and buyer_country in eu_countries and vat_rate == 0:
-                procedure = 'WDT'
+            # For other special procedures, detect them here:
+            # buyer_country = invoice.partner_id.country_id.code if invoice.partner_id.country_id else 'PL'
+            # if special_case:
+            #     procedure = 'I_42'  # or other valid procedure code
 
             line_data = {
                 'name': product_name,
