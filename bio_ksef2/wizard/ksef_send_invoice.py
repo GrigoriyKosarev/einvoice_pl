@@ -123,6 +123,15 @@ class KSefSendInvoice(models.TransientModel):
                 # Calculate total discount amount for this line
                 discount_amount = line.price_unit * line.quantity - line.price_subtotal
 
+            # Determine procedure (WDT for intra-EU supply with 0% VAT)
+            procedure = None
+            buyer_country = invoice.partner_id.country_id.code if invoice.partner_id.country_id else 'PL'
+            eu_countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE']
+
+            # WDT - Wewnątrzwspólnotowa Dostawa Towarów (Intra-EU supply of goods)
+            if buyer_country != 'PL' and buyer_country in eu_countries and vat_rate == 0:
+                procedure = 'WDT'
+
             line_data = {
                 'name': product_name,
                 'index': product_index,
@@ -135,6 +144,7 @@ class KSefSendInvoice(models.TransientModel):
                 'vat_amount': line.price_total - line.price_subtotal,
                 'gross_amount': line.price_total,
                 'currency_rate': currency_rate if is_foreign_currency else None,  # Exchange rate for this line
+                'procedure': procedure,  # WDT, EE, etc.
             }
 
             invoice_data['lines'].append(line_data)
