@@ -46,7 +46,7 @@
                             <field name="ksef_sent_date" readonly="1"/>
                         </group>
                         <group string="Credit Note Settings" attrs="{'invisible': [('move_type', '!=', 'out_refund')]}">
-                            <field name="ksef_correction_reason" placeholder="e.g. Zwrot towaru, Błąd w cenie, Reklamacja"/>
+                            <field name="ref" string="Correction Reason (PrzyczynaKorekty)" placeholder="e.g. Zwrot towaru, Błąd w cenie, Reklamacja"/>
                             <field name="ksef_correction_type"/>
                         </group>
                         <group string="KSeF Status">

@@ -51,11 +51,7 @@ class AccountMove(models.Model):
     )
 
     # Credit note (Faktura Korygująca) fields
-    ksef_correction_reason = fields.Char(
-        string='KSeF Correction Reason',
-        help='Przyczyna korekty (PrzyczynaKorekty) - reason for credit note',
-        copy=False,
-    )
+    # Note: Standard 'ref' field is used for correction reason (PrzyczynaKorekty)
     ksef_correction_type = fields.Selection(
         [
             ('1', 'W dacie faktury pierwotnej (effective from original invoice date)'),

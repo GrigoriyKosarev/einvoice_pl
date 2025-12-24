@@ -76,7 +76,7 @@
 <PrzyczynaKorekty>Zwrot towaru</PrzyczynaKorekty>
 ```
 
-**Мапування з Odoo**: `ref` або `narration` поле кредит ноти
+**Мапування з Odoo**: стандартне поле `ref` кредит ноти (Reason/Reference)
 
 **Приклади причин**:
 - "Zwrot towaru" (повернення товару)
@@ -219,23 +219,19 @@ def get_rodzaj_faktury(invoice):
 
 ---
 
-## 9. Необхідні зміни в Odoo моделі
+## 9. Реалізовані зміни в Odoo моделі
 
-### account.move (додати поля):
+### account.move (додані поля):
 
 ```python
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    # Додати зв'язок з оригінальним інвойсом
-    # (reversed_entry_id вже існує в Odoo)
+    # Стандартні Odoo поля використовувані для кредит нот:
+    # - reversed_entry_id: зв'язок з оригінальним інвойсом
+    # - ref: причина корекції (PrzyczynaKorekty)
 
-    # Додаткові поля для KSeF
-    ksef_correction_reason = fields.Char(
-        string='KSeF Correction Reason',
-        help='Przyczyna korekty (PrzyczynaKorekty)'
-    )
-
+    # Додане поле для KSeF:
     ksef_correction_type = fields.Selection([
         ('1', 'W dacie faktury pierwotnej'),
         ('2', 'W dacie faktury korygującej'),
@@ -244,17 +240,19 @@ class AccountMove(models.Model):
        help='Typ skutku korekty (TypKorekty)')
 ```
 
+**Примітка**: Використовується стандартне поле `ref` (Reason/Reference) для зберігання причини корекції замість створення окремого поля.
+
 ---
 
-## 10. План імплементації
+## 10. Статус імплементації
 
 1. ✅ Проаналізувати XSD схему
-2. ⏳ Додати підтримку RodzajFaktury = KOR
-3. ⏳ Реалізувати DaneFaKorygowanej блок
-4. ⏳ Додати PrzyczynaKorekty та TypKorekty
-5. ⏳ Обробка від'ємних сум
-6. ⏳ Тестування з реальною кредит нотою
-7. ⏳ (Опціонально) Підтримка KOR_ROZ
+2. ✅ Додати підтримку RodzajFaktury = KOR
+3. ✅ Реалізувати DaneFaKorygowanej блок
+4. ✅ Додати PrzyczynaKorekty та TypKorekty
+5. ✅ Обробка від'ємних сум (автоматично в Odoo)
+6. ✅ Тестування з тестовою кредит нотою
+7. ⏳ (Опціонально) Підтримка KOR_ROZ для знижок за період
 
 ---
 

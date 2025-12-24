@@ -173,7 +173,8 @@ class KSefSendInvoice(models.TransientModel):
             invoice_data['rodzaj_faktury'] = 'KOR'
 
             # Add credit note specific data
-            invoice_data['correction_reason'] = invoice.ksef_correction_reason or invoice.ref or 'Korekta'
+            # Use standard 'ref' field for correction reason
+            invoice_data['correction_reason'] = invoice.ref or 'Korekta'
             invoice_data['correction_type'] = invoice.ksef_correction_type or '2'
 
             # Get original invoice data (reversed_entry_id is Odoo's field for original invoice)
