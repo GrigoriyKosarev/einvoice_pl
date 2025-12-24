@@ -235,8 +235,42 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         '                <P_PMarzyN>1</P_PMarzyN>',
         '            </PMarzy>',
         '        </Adnotacje>',
-        '        <RodzajFaktury>VAT</RodzajFaktury>',
     ])
+
+    # Determine RodzajFaktury (invoice type)
+    rodzaj_faktury = invoice_data.get('rodzaj_faktury', 'VAT')
+    xml_parts.append(f'        <RodzajFaktury>{rodzaj_faktury}</RodzajFaktury>')
+
+    # Add credit note specific data (for KOR, KOR_ZAL, KOR_ROZ)
+    if rodzaj_faktury in ('KOR', 'KOR_ZAL', 'KOR_ROZ'):
+        # PrzyczynaKorekty - reason for correction
+        correction_reason = invoice_data.get('correction_reason', '')
+        if correction_reason:
+            xml_parts.append(f'        <PrzyczynaKorekty>{_escape_xml(correction_reason)}</PrzyczynaKorekty>')
+
+        # TypKorekty - type of correction (1, 2, or 3)
+        correction_type = invoice_data.get('correction_type', '2')
+        xml_parts.append(f'        <TypKorekty>{correction_type}</TypKorekty>')
+
+        # DaneFaKorygowanej - data of corrected invoice(s)
+        corrected_invoices = invoice_data.get('corrected_invoices', [])
+        for corrected_inv in corrected_invoices:
+            xml_parts.append('        <DaneFaKorygowanej>')
+            xml_parts.append(f'            <DataWystFaKorygowanej>{corrected_inv["date"]}</DataWystFaKorygowanej>')
+            xml_parts.append(f'            <NrFaKorygowanej>{_escape_xml(corrected_inv["number"])}</NrFaKorygowanej>')
+
+            # Check if original invoice has KSeF number
+            ksef_number = corrected_inv.get('ksef_number')
+            if ksef_number:
+                # Invoice was in KSeF
+                xml_parts.append('            <NrKSeF>1</NrKSeF>')
+                xml_parts.append(f'            <NrKSeFFaKorygowanej>{ksef_number}</NrKSeFFaKorygowanej>')
+            else:
+                # Invoice was outside KSeF
+                xml_parts.append('            <NrKSeFN>1</NrKSeFN>')
+
+            xml_parts.append('        </DaneFaKorygowanej>')
+
 
     # Рядки товарів/послуг (FaWiersz)
     # Згідно з офіційним XSD:
