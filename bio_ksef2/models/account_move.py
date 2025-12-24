@@ -50,6 +50,20 @@ class AccountMove(models.Model):
         copy=False,
     )
 
+    # Credit note (Faktura Korygująca) fields
+    # Note: Standard 'ref' field is used for correction reason (PrzyczynaKorekty)
+    ksef_correction_type = fields.Selection(
+        [
+            ('1', 'W dacie faktury pierwotnej (effective from original invoice date)'),
+            ('2', 'W dacie faktury korygującej (effective from credit note date)'),
+            ('3', 'W innej dacie (effective from other date)'),
+        ],
+        string='KSeF Correction Type',
+        default='2',
+        help='Typ skutku korekty w ewidencji VAT (TypKorekty)',
+        copy=False,
+    )
+
     def action_send_to_ksef(self):
         """Send invoice to KSeF"""
         for move in self:

@@ -167,6 +167,32 @@ class KSefSendInvoice(models.TransientModel):
             invoice_data['total_vat_pln'] = invoice_data['total_vat']
             invoice_data['total_gross_pln'] = invoice_data['total_gross']
 
+        # Determine invoice type (RodzajFaktury)
+        if invoice.move_type == 'out_refund':
+            # Credit note (Faktura Korygująca)
+            invoice_data['rodzaj_faktury'] = 'KOR'
+
+            # Add credit note specific data
+            # Use standard 'ref' field for correction reason
+            invoice_data['correction_reason'] = invoice.ref or 'Korekta'
+            invoice_data['correction_type'] = invoice.ksef_correction_type or '2'
+
+            # Get original invoice data (reversed_entry_id is Odoo's field for original invoice)
+            if invoice.reversed_entry_id:
+                corrected_invoices = [{
+                    'date': invoice.reversed_entry_id.invoice_date.strftime('%Y-%m-%d') if invoice.reversed_entry_id.invoice_date else issue_date,
+                    'number': invoice.reversed_entry_id.name,
+                    'ksef_number': invoice.reversed_entry_id.ksef_number if invoice.reversed_entry_id.ksef_number else None,
+                }]
+                invoice_data['corrected_invoices'] = corrected_invoices
+            else:
+                # No reversed_entry_id - try to get from ref or narration
+                _logger.warning(f'Credit note {invoice.name} has no reversed_entry_id. Using ref field.')
+                invoice_data['corrected_invoices'] = []
+        else:
+            # Regular invoice
+            invoice_data['rodzaj_faktury'] = 'VAT'
+
         # Get config to determine format version
         config = self.env['ksef.config'].get_config(invoice.company_id.id)
         format_version = config.fa_version or 'FA2'
