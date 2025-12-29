@@ -48,9 +48,9 @@ List of possible elements expected: 'DaneFaKorygowanej'
 
 Якщо `reversed_entry_id` не заповнено, модуль покаже помилку:
 ```
-Кредитна нота [номер] не має посилання на оригінальний інвойс!
-Поле "reversed_entry_id" є обов'язковим для відправки кредитних нот в KSeF.
-Створіть кредитну ноту через кнопку "Credit Note" на оригінальному інвойсі.
+Credit note [number] has no reference to the original invoice!
+Field "reversed_entry_id" is required for sending credit notes to KSeF.
+Create credit note using "Credit Note" button on the original invoice.
 ```
 
 ---

@@ -181,9 +181,9 @@ class KSefSendInvoice(models.TransientModel):
             # DaneFaKorygowanej is REQUIRED for KOR invoices!
             if not invoice.reversed_entry_id:
                 raise UserError(
-                    f'Кредитна нота {invoice.name} не має посилання на оригінальний інвойс!\n'
-                    f'Поле "reversed_entry_id" є обов\'язковим для відправки кредитних нот в KSeF.\n'
-                    f'Створіть кредитну ноту через кнопку "Credit Note" на оригінальному інвойсі.'
+                    f'Credit note {invoice.name} has no reference to the original invoice!\n'
+                    f'Field "reversed_entry_id" is required for sending credit notes to KSeF.\n'
+                    f'Create credit note using "Credit Note" button on the original invoice.'
                 )
 
             corrected_invoices = [{
