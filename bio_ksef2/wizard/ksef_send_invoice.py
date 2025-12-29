@@ -178,17 +178,20 @@ class KSefSendInvoice(models.TransientModel):
             invoice_data['correction_type'] = invoice.ksef_correction_type or '2'
 
             # Get original invoice data (reversed_entry_id is Odoo's field for original invoice)
-            if invoice.reversed_entry_id:
-                corrected_invoices = [{
-                    'date': invoice.reversed_entry_id.invoice_date.strftime('%Y-%m-%d') if invoice.reversed_entry_id.invoice_date else issue_date,
-                    'number': invoice.reversed_entry_id.name,
-                    'ksef_number': invoice.reversed_entry_id.ksef_number if invoice.reversed_entry_id.ksef_number else None,
-                }]
-                invoice_data['corrected_invoices'] = corrected_invoices
-            else:
-                # No reversed_entry_id - try to get from ref or narration
-                _logger.warning(f'Credit note {invoice.name} has no reversed_entry_id. Using ref field.')
-                invoice_data['corrected_invoices'] = []
+            # DaneFaKorygowanej is REQUIRED for KOR invoices!
+            if not invoice.reversed_entry_id:
+                raise UserError(
+                    f'Credit note {invoice.name} has no reference to the original invoice!\n'
+                    f'Field "reversed_entry_id" is required for sending credit notes to KSeF.\n'
+                    f'Create credit note using "Credit Note" button on the original invoice.'
+                )
+
+            corrected_invoices = [{
+                'date': invoice.reversed_entry_id.invoice_date.strftime('%Y-%m-%d') if invoice.reversed_entry_id.invoice_date else issue_date,
+                'number': invoice.reversed_entry_id.name,
+                'ksef_number': invoice.reversed_entry_id.ksef_number if invoice.reversed_entry_id.ksef_number else None,
+            }]
+            invoice_data['corrected_invoices'] = corrected_invoices
         else:
             # Regular invoice
             invoice_data['rodzaj_faktury'] = 'VAT'

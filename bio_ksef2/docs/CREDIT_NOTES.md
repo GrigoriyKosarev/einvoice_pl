@@ -18,7 +18,44 @@
 
 ---
 
-## 2. Структура DaneFaKorygowanej
+## 2. КРИТИЧНІ ВИМОГИ ⚠️
+
+### ✅ DaneFaKorygowanej є ОБОВ'ЯЗКОВИМ для KOR!
+
+**Елемент `<DaneFaKorygowanej>` є обов'язковим** для всіх типів кредит нот (`KOR`, `KOR_ZAL`, `KOR_ROZ`).
+
+Без цього елемента KSeF відхилить фактуру з помилкою:
+```
+Błąd weryfikacji semantyki dokumentu faktury •
+The element 'Fa' has invalid child element 'FaWiersz'.
+List of possible elements expected: 'DaneFaKorygowanej'
+```
+
+### ✅ Як правильно створити кредит ноту в Odoo:
+
+**ПРАВИЛЬНО** ✅:
+1. Відкрити оригінальний інвойс
+2. Натиснути кнопку **"Credit Note"** / **"Add Credit Note"**
+3. Заповнити причину в поле **"Reason"** / **"Ref"**
+4. Одно із полів `reversed_entry_id` автоматично заповниться
+
+**НЕПРАВИЛЬНО** ❌:
+- Створювати кредит ноту вручну (New → Customer Credit Note)
+- При ручному створенні поле `reversed_entry_id` залишається порожнім
+- KSeF відхилить таку кредит ноту!
+
+### ✅ Валідація при відправці:
+
+Якщо `reversed_entry_id` не заповнено, модуль покаже помилку:
+```
+Credit note [number] has no reference to the original invoice!
+Field "reversed_entry_id" is required for sending credit notes to KSeF.
+Create credit note using "Credit Note" button on the original invoice.
+```
+
+---
+
+## 3. Структура DaneFaKorygowanej
 
 ### Обов'язкові поля (для RodzajFaktury = KOR, KOR_ZAL, KOR_ROZ):
 
@@ -56,7 +93,7 @@
 
 ---
 
-## 3. TypKorekty - Тип коrekції
+## 4. TypKorekty - Тип коrekції
 
 Впливає на **період відображення в обліку ПДВ**:
 
@@ -70,7 +107,7 @@
 
 ---
 
-## 4. PrzyczynaKorekty - Причина корекції
+## 5. PrzyczynaKorekty - Причина корекції
 
 ```xml
 <PrzyczynaKorekty>Zwrot towaru</PrzyczynaKorekty>
@@ -86,7 +123,7 @@
 
 ---
 
-## 5. Суми в кредит нотах - КРИТИЧНО! ⚠️
+## 6. Суми в кредит нотах - КРИТИЧНО! ⚠️
 
 **Згідно з XSD документацією (рядок 2355)**:
 > "W przypadku wystawienia faktury korygującej, wypełnia się wszystkie pola wg stanu po korekcie,
@@ -114,7 +151,7 @@
 
 ---
 
-## 6. Приклад XML для кредит ноти (KOR)
+## 7. Приклад XML для кредит ноти (KOR)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -174,7 +211,7 @@
 
 ---
 
-## 7. Відмінності KOR vs KOR_ROZ
+## 8. Відмінності KOR vs KOR_ROZ
 
 ### KOR (звичайна кредит нота):
 - Будь-які зміни в інвойсі
@@ -194,7 +231,7 @@
 
 ---
 
-## 8. Логіка визначення типу в Odoo
+## 9. Логіка визначення типу в Odoo
 
 ```python
 def get_rodzaj_faktury(invoice):
@@ -219,7 +256,7 @@ def get_rodzaj_faktury(invoice):
 
 ---
 
-## 9. Реалізовані зміни в Odoo моделі
+## 10. Реалізовані зміни в Odoo моделі
 
 ### account.move (додані поля):
 
@@ -244,15 +281,17 @@ class AccountMove(models.Model):
 
 ---
 
-## 10. Статус імплементації
+## 11. Статус імплементації
 
 1. ✅ Проаналізувати XSD схему
 2. ✅ Додати підтримку RodzajFaktury = KOR
 3. ✅ Реалізувати DaneFaKorygowanej блок
 4. ✅ Додати PrzyczynaKorekty та TypKorekty
 5. ✅ Обробка від'ємних сум (автоматично в Odoo)
-6. ✅ Тестування з тестовою кредит нотою
-7. ⏳ (Опціонально) Підтримка KOR_ROZ для знижок за період
+6. ✅ Валідація обов'язкового reversed_entry_id для кредит нот
+7. ✅ Валідація обов'язкового DaneFaKorygowanej в XML генераторі
+8. ✅ Оновлена документація з критичними вимогами
+9. ⏳ (Опціонально) Підтримка KOR_ROZ для знижок за період
 
 ---
 

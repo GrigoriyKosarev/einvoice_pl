@@ -253,7 +253,14 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         xml_parts.append(f'        <TypKorekty>{correction_type}</TypKorekty>')
 
         # DaneFaKorygowanej - data of corrected invoice(s)
+        # This is REQUIRED for KOR invoices!
         corrected_invoices = invoice_data.get('corrected_invoices', [])
+        if not corrected_invoices:
+            raise ValueError(
+                f'DaneFaKorygowanej is required for invoice type {rodzaj_faktury}. '
+                f'corrected_invoices must not be empty!'
+            )
+
         for corrected_inv in corrected_invoices:
             xml_parts.append('        <DaneFaKorygowanej>')
             xml_parts.append(f'            <DataWystFaKorygowanej>{corrected_inv["date"]}</DataWystFaKorygowanej>')
