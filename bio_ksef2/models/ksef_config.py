@@ -25,6 +25,7 @@ class KSefConfig(models.Model):
     )
     api_url = fields.Selection(
         [
+            ('https://api-test.ksef.mf.gov.pl', 'Test Environment 2026'),
             ('https://ksef-test.mf.gov.pl', 'Test Environment'),
             ('https://ksef.mf.gov.pl', 'Production Environment'),
         ],

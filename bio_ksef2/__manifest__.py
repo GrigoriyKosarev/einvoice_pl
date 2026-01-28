@@ -24,8 +24,7 @@ Requirements:
 * cryptography library
 * requests library
     """,
-    'author': 'Your Company',
-    'website': 'https://www.yourcompany.com',
+    'author': 'Biosphera',
     'license': 'LGPL-3',
     'depends': [
         'account',
