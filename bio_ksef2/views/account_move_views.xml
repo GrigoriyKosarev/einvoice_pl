@@ -8,6 +8,11 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
 
+            <!-- Add invisible field for visibility control -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="has_ksef_config" invisible="1"/>
+            </xpath>
+
             <!-- Add KSeF button in header -->
             <xpath expr="//header/button[@name='action_post']" position="after">
                 <button name="action_send_to_ksef"
@@ -17,7 +22,8 @@
                         groups="account.group_account_invoice"
                         attrs="{
                             'invisible': [
-                                '|', '|',
+                                '|', '|', '|',
+                                ('has_ksef_config', '=', False),
                                 ('state', '!=', 'posted'),
                                 ('move_type', 'not in', ('out_invoice', 'out_refund')),
                                 ('ksef_number', '!=', False)
@@ -28,7 +34,8 @@
                         groups="account.group_account_invoice"
                         attrs="{
                             'invisible': [
-                                '|',
+                                '|', '|',
+                                ('has_ksef_config', '=', False),
                                 ('ksef_reference', '=', False),
                                 ('ksef_status', '=', 'accepted')
                             ]
@@ -38,7 +45,7 @@
             <!-- Add KSeF fields in notebook -->
             <xpath expr="//notebook" position="inside">
                 <page string="KSeF" name="ksef"
-                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund'))]}">
+                    attrs="{'invisible': ['|', ('has_ksef_config', '=', False), ('move_type', 'not in', ('out_invoice', 'out_refund'))]}">
                     <group>
                         <group string="KSeF Information">
                             <field name="ksef_number" readonly="1"/>
