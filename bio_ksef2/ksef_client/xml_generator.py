@@ -302,22 +302,6 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('gtin'):
             xml_parts.append(f'            <GTIN>{_escape_xml(line["gtin"])}</GTIN>')
 
-        # DodatkowyOpis - Customer-specific product information
-        if line.get('customer_product_code'):
-            xml_parts.extend([
-                '            <DodatkowyOpis>',
-                '                <Klucz>CustomerProductCode</Klucz>',
-                f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
-                '            </DodatkowyOpis>',
-            ])
-        if line.get('customer_product_name'):
-            xml_parts.extend([
-                '            <DodatkowyOpis>',
-                '                <Klucz>CustomerProductName</Klucz>',
-                f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
-                '            </DodatkowyOpis>',
-            ])
-
         # P_8A - Miara (одиниця виміру)
         if line.get('unit'):
             xml_parts.append(f'            <P_8A>{_escape_xml(line["unit"])}</P_8A>')
@@ -352,6 +336,23 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         # IMPORTANT: Must come AFTER Procedura according to XSD sequence
         if line.get('currency_rate'):
             xml_parts.append(f'            <KursWaluty>{_format_currency_rate(line["currency_rate"])}</KursWaluty>')
+
+        # DodatkowyOpis - Customer-specific product information
+        # IMPORTANT: Must be at the END of FaWiersz element, after all other fields
+        if line.get('customer_product_code'):
+            xml_parts.extend([
+                '            <DodatkowyOpis>',
+                '                <Klucz>CustomerProductCode</Klucz>',
+                f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
+                '            </DodatkowyOpis>',
+            ])
+        if line.get('customer_product_name'):
+            xml_parts.extend([
+                '            <DodatkowyOpis>',
+                '                <Klucz>CustomerProductName</Klucz>',
+                f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
+                '            </DodatkowyOpis>',
+            ])
 
         xml_parts.append('        </FaWiersz>')
 
