@@ -45,14 +45,16 @@ class KSefConfig(models.Model):
     )
     fa_version = fields.Selection(
         [
-            ('FA2', 'FA(2) - valid until 31.01.2026'),
-            ('FA3', 'FA(3) - mandatory from 01.02.2026'),
+            ('FA2', 'FA(2) - Current schema (valid until Aug 31, 2025)'),
+            ('FA3', 'FA(3) - New schema (valid from Sept 1, 2025)'),
         ],
         string='Invoice Format Version',
         required=True,
-        default='FA3',
-        help='Select FA_VAT invoice format version to use for KSeF submissions. '
-             'Note: DodatkowyOpis (Customer Product Code/Name) is only available in FA(3).',
+        default='FA2',
+        help='Invoice format version for KSeF submissions.\n\n'
+             'FA(2): Current schema with WariantFormularza=2, supports DodatkowyOpis (Customer Product Code/Name)\n'
+             'FA(3): New schema with WariantFormularza=3, does NOT support DodatkowyOpis\n\n'
+             'Note: FA(3) uses different XML namespace and is mandatory from September 1, 2025.',
     )
 
     _sql_constraints = [

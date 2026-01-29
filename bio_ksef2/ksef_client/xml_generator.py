@@ -11,7 +11,8 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     Args:
         invoice_data: Словник з даними інвойсу:
         format_version: Версія формату ('FA2' або 'FA3')
-                        ⚠️ FA(3) = FA(2) структурно! Обидва генерують kodSystemowy="FA (2)"
+                        FA2: Current schema, valid until Aug 31, 2025, supports DodatkowyOpis
+                        FA3: New schema, valid from Sept 1, 2025, does NOT support DodatkowyOpis
             {
                 'invoice_number': str,
                 'issue_date': str (YYYY-MM-DD),
@@ -58,18 +59,25 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     # Визначаємо параметри формату
-    # CRITICAL: FA(2) and FA(3) both use kodSystemowy="FA (2)"!
-    # The ONLY difference is WariantFormularza (2 or 3)
+    # FA(2) vs FA(3) are DIFFERENT schemas with different namespaces!
+    # FA(2): http://crd.gov.pl/wzor/2023/06/29/12648/ - WariantFormularza=2, DodatkowyOpis supported
+    # FA(3): http://crd.gov.pl/wzor/2025/06/25/13775/ - WariantFormularza=3, NO DodatkowyOpis
+    # FA(3) is valid from September 1, 2025 to January 1, 2050
+
     if format_version == 'FA3':
-        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
-        kod_systemowy = 'FA (2)'  # NOT "FA (3)"! Both FA2 and FA3 use "FA (2)"
+        # Real FA(3) schema (mandatory from Sept 1, 2025)
+        namespace = 'http://crd.gov.pl/wzor/2025/06/25/13775/'
+        kod_systemowy = 'FA (3)'  # Based on schema pattern (FA(2) uses "FA (2)")
         wariant = '3'
         wersja_schemy = '1-0E'
-    else:  # FA2 за замовчуванням
+        supports_dodatkowy_opis = False
+    else:
+        # FA(2) - Current schema (valid until Aug 31, 2025)
         namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
         kod_systemowy = 'FA (2)'
         wariant = '2'
         wersja_schemy = '1-0E'
+        supports_dodatkowy_opis = True
 
     # Початок XML
     xml_parts = [
@@ -349,10 +357,10 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         # When implemented, it must come BEFORE DodatkowyOpis
 
         # DodatkowyOpis - Customer-specific product information
-        # IMPORTANT: Only available in FA(3), NOT in FA(2)!
+        # Available ONLY in FA(2) schema! NOT supported in FA(3)
         # CRITICAL: Must be ABSOLUTE LAST element in FaWiersz, after ALL other fields including StanPrzed!
         # XSD sequence: P_12 → P_12_XII → P_12_Zal_15 → KwotaAkcyzy → GTU → Procedura → KursWaluty → StanPrzed → DodatkowyOpis
-        if format_version == 'FA3':
+        if supports_dodatkowy_opis:
             if line.get('customer_product_code'):
                 xml_parts.extend([
                     '            <DodatkowyOpis>',

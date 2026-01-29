@@ -18,11 +18,8 @@ def post_init_hook(cr, registry):
         env['ksef.config']._init_company_ksef_flags()
         _logger.info('Successfully initialized has_ksef_config flags')
 
-        # Migrate existing FA2 configs to FA3 (FA3 is mandatory from 01.02.2026)
-        fa2_configs = env['ksef.config'].search([('fa_version', '=', 'FA2')])
-        if fa2_configs:
-            fa2_configs.write({'fa_version': 'FA3'})
-            _logger.info(f'Migrated {len(fa2_configs)} KSeF configs from FA2 to FA3')
+        # FA(3) is now a valid separate schema (mandatory from Sept 1, 2025)
+        # No migration needed - both FA(2) and FA(3) are valid formats
 
     except Exception as e:
         _logger.error(f'Failed to run post_init_hook: {e}')
