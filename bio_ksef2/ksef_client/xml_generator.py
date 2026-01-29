@@ -325,34 +325,46 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if line.get('vat_rate') is not None:
             xml_parts.append(f'            <P_12>{line["vat_rate"]}</P_12>')
 
+        # TODO: P_12_XII - dla procedur z art. 12 ust. 12 (optional)
+        # TODO: P_12_Zal_15 - dla procedur z załącznika nr 15 (optional)
+        # TODO: KwotaAkcyzy - excise tax amount (optional)
+        # TODO: GTU - GTU codes (optional, can be multiple)
+
         # Procedura - Special procedures (optional)
         # NOTE: WDT (intra-EU supply) does NOT use Procedura field
         # Valid values: WSTO_EE, IED, TT_D, I_42, I_63, B_SPV, B_SPV_DOSTAWA, B_MPV_PROWIZJA
-        # IMPORTANT: Must come BEFORE KursWaluty according to XSD sequence
+        # IMPORTANT: Must come AFTER P_12/GTU and BEFORE KursWaluty according to XSD sequence
         if line.get('procedure'):
             xml_parts.append(f'            <Procedura>{line["procedure"]}</Procedura>')
 
         # KursWaluty - Курс валюти (для іноземної валюти)
-        # IMPORTANT: Must come AFTER Procedura according to XSD sequence
+        # IMPORTANT: Must come AFTER Procedura and BEFORE StanPrzed according to XSD sequence
         if line.get('currency_rate'):
             xml_parts.append(f'            <KursWaluty>{_format_currency_rate(line["currency_rate"])}</KursWaluty>')
 
+        # TODO: StanPrzed - stan przed korektą (for credit notes with quantity changes, optional)
+        # NOTE: This field shows state BEFORE correction for credit notes
+        # When implemented, it must come BEFORE DodatkowyOpis
+
         # DodatkowyOpis - Customer-specific product information
-        # IMPORTANT: Must be at the END of FaWiersz element, after all other fields
-        if line.get('customer_product_code'):
-            xml_parts.extend([
-                '            <DodatkowyOpis>',
-                '                <Klucz>CustomerProductCode</Klucz>',
-                f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
-                '            </DodatkowyOpis>',
-            ])
-        if line.get('customer_product_name'):
-            xml_parts.extend([
-                '            <DodatkowyOpis>',
-                '                <Klucz>CustomerProductName</Klucz>',
-                f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
-                '            </DodatkowyOpis>',
-            ])
+        # IMPORTANT: Only available in FA(3), NOT in FA(2)!
+        # CRITICAL: Must be ABSOLUTE LAST element in FaWiersz, after ALL other fields including StanPrzed!
+        # XSD sequence: P_12 → P_12_XII → P_12_Zal_15 → KwotaAkcyzy → GTU → Procedura → KursWaluty → StanPrzed → DodatkowyOpis
+        if format_version == 'FA3':
+            if line.get('customer_product_code'):
+                xml_parts.extend([
+                    '            <DodatkowyOpis>',
+                    '                <Klucz>CustomerProductCode</Klucz>',
+                    f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
+                    '            </DodatkowyOpis>',
+                ])
+            if line.get('customer_product_name'):
+                xml_parts.extend([
+                    '            <DodatkowyOpis>',
+                    '                <Klucz>CustomerProductName</Klucz>',
+                    f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
+                    '            </DodatkowyOpis>',
+                ])
 
         xml_parts.append('        </FaWiersz>')
 

@@ -49,8 +49,9 @@ class KSefConfig(models.Model):
         ],
         string='Invoice Format Version',
         required=True,
-        default='FA2',
-        help='Select FA_VAT invoice format version to use for KSeF submissions',
+        default='FA3',
+        help='Select FA_VAT invoice format version to use for KSeF submissions. '
+             'Note: DodatkowyOpis (Customer Product Code/Name) is only available in FA(3).',
     )
 
     _sql_constraints = [
