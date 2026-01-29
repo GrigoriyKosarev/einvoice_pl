@@ -52,14 +52,16 @@ class KSefConfig(models.Model):
         default='FA2',
         help='Invoice format version for KSeF submissions.\n\n'
              'FA(2): ✅ Currently working - Use this!\n'
+             '  - Namespace: http://crd.gov.pl/wzor/2023/06/29/12648/\n'
              '  - WariantFormularza=2\n'
-             '  - Supports DodatkowyOpis (Customer Product Code/Name)\n\n'
+             '  - Standard fields: P_7, Indeks, GTIN, etc.\n\n'
              'FA(3): ⚠️ NOT YET DEPLOYED to KSeF system!\n'
+             '  - Namespace: http://crd.gov.pl/wzor/2025/06/25/13775/\n'
              '  - WariantFormularza=3\n'
-             '  - Does NOT support DodatkowyOpis\n'
              '  - Will be available from September 1, 2025\n'
              '  - Currently KSeF rejects with: "Could not find schema information"\n\n'
-             'IMPORTANT: Use FA(2) until KSeF officially announces FA(3) support.',
+             'IMPORTANT: Use FA(2) until KSeF officially announces FA(3) support.\n\n'
+             'NOTE: DodatkowyOpis is NOT supported in either FA(2) or FA(3)!',
     )
 
     _sql_constraints = [

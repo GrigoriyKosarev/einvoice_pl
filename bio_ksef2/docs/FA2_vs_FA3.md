@@ -31,8 +31,8 @@ FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy Sy
 | **kodSystemowy** | `FA (2)` | `FA (3)` |
 | **Schema Version** | `1-0E` | `1-0E` |
 | **Valid Date Range** | Until Aug 31, 2025 | Sept 1, 2025 - Jan 1, 2050 |
-| **DodatkowyOpis Support** | ✅ YES | ❌ NO |
-| **Customer Product Info** | ✅ Supported | ❌ NOT supported |
+| **DodatkowyOpis Support** | ❌ NO | ❌ NO |
+| **Customer Product Info** | ❌ NOT supported | ❌ NOT supported |
 
 ## Schema URLs
 
@@ -46,35 +46,49 @@ FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy Sy
 - **Style XSL**: http://crd.gov.pl/wzor/2025/06/25/13775/styl.xsl
 - **Namespace**: `http://crd.gov.pl/wzor/2025/06/25/13775/`
 
-## DodatkowyOpis (Customer Product Information)
+## ❌ DodatkowyOpis (Customer Product Information) - NOT SUPPORTED
 
-**FA(2) ONLY** - This feature is available exclusively in FA(2) schema.
+**IMPORTANT DISCOVERY**: The `DodatkowyOpis` element is **NOT supported** in either FA(2) or FA(3)!
 
-The `DodatkowyOpis` element allows adding custom key-value pairs to invoice lines for customer-specific product information:
-
-```xml
-<DodatkowyOpis>
-    <Klucz>CustomerProductCode</Klucz>
-    <Wartosc>CUSTOMER-SKU-123</Wartosc>
-</DodatkowyOpis>
-<DodatkowyOpis>
-    <Klucz>CustomerProductName</Klucz>
-    <Wartosc>Customer's Product Name</Wartosc>
-</DodatkowyOpis>
+**KSeF validation error confirms this:**
+```
+The element 'FaWiersz' has invalid child element 'DodatkowyOpis'.
+List of possible elements expected: 'P_12_XII, P_12_Zal_15, KwotaAkcyzy, GTU, Procedura, KursWaluty, StanPrzed'
 ```
 
-**In FA(3)**: This element does NOT exist in the schema and cannot be used.
+`DodatkowyOpis` is **not in the list** of valid FaWiersz child elements.
+
+### Alternative Solutions for Customer Product Info
+
+Since `DodatkowyOpis` cannot be used, consider these alternatives:
+
+1. **P_7 (Product Description)**: Include customer-specific product name/code in the description field
+   ```xml
+   <P_7>[YOUR-SKU] Product Name | Customer: CUST-SKU Customer Product Name</P_7>
+   ```
+
+2. **Indeks (Product Code)**: Use for internal product code (not customer-specific)
+   ```xml
+   <Indeks>YOUR-INTERNAL-SKU</Indeks>
+   ```
+
+3. **GTIN (Barcode)**: Use standard product barcode
+   ```xml
+   <GTIN>1234567890123</GTIN>
+   ```
+
+**Conclusion**: Customer-specific product information cannot be structured separately in KSeF invoices. It must be included in the standard P_7 description field if needed.
 
 ## Migration Timeline
 
 ### Until August 31, 2025
 - **Use FA(2)** for all invoices
-- DodatkowyOpis is available
+- Standard fields: P_7, Indeks, GTIN available
 
 ### From September 1, 2025
-- **Switch to FA(3)** (becomes mandatory)
-- DodatkowyOpis is NO LONGER available
-- Customer Product Code/Name features will not work
+- **Switch to FA(3)** (when KSeF deploys it)
+- Same standard fields available as FA(2)
+- Monitor KSeF announcements for FA(3) deployment
 
 ## Implementation in Code
 
@@ -103,16 +117,17 @@ The `fa_version` field allows selecting the format:
 
 ## Testing Recommendations
 
-### Before September 1, 2025
+### Current Testing (FA(2))
 1. Test invoices with FA(2) format
-2. Verify DodatkowyOpis fields work correctly
+2. Verify standard fields: P_7, Indeks, GTIN
 3. Test credit notes with FA(2)
+4. Verify all required fields are correctly populated
 
-### After September 1, 2025
-1. Switch configuration to FA(3)
-2. Verify invoices are accepted with new schema
-3. **DO NOT** rely on Customer Product Code/Name features
-4. Test that missing DodatkowyOpis doesn't cause errors
+### After FA(3) Deployment (Sept 1, 2025)
+1. Monitor KSeF announcements for FA(3) availability
+2. Test in test environment first
+3. Verify invoices are accepted with new namespace
+4. Verify same standard fields work as in FA(2)
 
 ## Common Issues
 
@@ -129,12 +144,19 @@ Could not find schema information for the element 'http://crd.gov.pl/wzor/2025/0
 - Monitor KSeF announcements for FA(3) availability (expected around September 1, 2025)
 - The code implementation is correct and will work automatically once KSeF activates FA(3)
 
-### Issue 1: FA(3) rejects DodatkowyOpis
-**Symptom**: KSeF rejects invoice with error about invalid child element 'DodatkowyOpis'
+### Issue 1: DodatkowyOpis not supported
+**Symptom**: KSeF rejects invoice with error:
+```
+The element 'FaWiersz' has invalid child element 'DodatkowyOpis'.
+List of possible elements expected: 'P_12_XII, P_12_Zal_15, KwotaAkcyzy, GTU, Procedura, KursWaluty, StanPrzed'
+```
 
-**Cause**: FA(3) schema does not support DodatkowyOpis element
+**Cause**: DodatkowyOpis element is not supported in FA(2) or FA(3) schemas
 
-**Solution**: Use FA(2) format if Customer Product Info is required, or switch to FA(3) and remove this feature
+**Solution**:
+- Remove DodatkowyOpis from invoice XML
+- Use P_7 (product description) field to include customer-specific information if needed
+- Use standard fields: Indeks (internal SKU), GTIN (barcode)
 
 ### Issue 2: Wrong namespace for FA(3)
 **Symptom**: KSeF rejects invoice with namespace error
