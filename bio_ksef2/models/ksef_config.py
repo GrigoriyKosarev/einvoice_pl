@@ -61,37 +61,77 @@ class KSefConfig(models.Model):
     def create(self, vals_list):
         """Set has_ksef_config flag on company when config is created"""
         records = super().create(vals_list)
-        for record in records:
-            if record.company_id:
-                record.company_id.has_ksef_config = True
+        # Skip updating company flag during module install/upgrade
+        if not self.env.context.get('module_install', False):
+            for record in records:
+                if record.company_id:
+                    try:
+                        record.company_id.has_ksef_config = True
+                    except Exception:
+                        # Ignore errors during module initialization
+                        pass
         return records
 
     def write(self, vals):
         """Update has_ksef_config flag when active status changes"""
         result = super().write(vals)
-        if 'active' in vals or 'company_id' in vals:
-            for record in self:
-                if record.company_id:
-                    # Check if any active config exists for this company
-                    has_config = self.search_count([
-                        ('company_id', '=', record.company_id.id),
-                        ('active', '=', True),
-                    ]) > 0
-                    record.company_id.has_ksef_config = has_config
+        # Skip updating company flag during module install/upgrade
+        if not self.env.context.get('module_install', False):
+            if 'active' in vals or 'company_id' in vals:
+                for record in self:
+                    if record.company_id:
+                        try:
+                            # Check if any active config exists for this company
+                            has_config = self.search_count([
+                                ('company_id', '=', record.company_id.id),
+                                ('active', '=', True),
+                            ]) > 0
+                            record.company_id.has_ksef_config = has_config
+                        except Exception:
+                            # Ignore errors during module initialization
+                            pass
         return result
 
     def unlink(self):
         """Clear has_ksef_config flag on company when config is deleted"""
         companies = self.mapped('company_id')
         result = super().unlink()
-        for company in companies:
-            # Check if any active config still exists for this company
-            has_config = self.search_count([
-                ('company_id', '=', company.id),
-                ('active', '=', True),
-            ]) > 0
-            company.has_ksef_config = has_config
+        # Skip updating company flag during module install/upgrade
+        if not self.env.context.get('module_install', False):
+            for company in companies:
+                try:
+                    # Check if any active config still exists for this company
+                    has_config = self.search_count([
+                        ('company_id', '=', company.id),
+                        ('active', '=', True),
+                    ]) > 0
+                    company.has_ksef_config = has_config
+                except Exception:
+                    # Ignore errors during module initialization
+                    pass
         return result
+
+    @api.model
+    def _init_company_ksef_flags(self):
+        """Initialize has_ksef_config flags for all companies.
+        Called after module installation/upgrade."""
+        _logger.info('Initializing has_ksef_config flags for companies...')
+
+        # Get all companies
+        all_companies = self.env['res.company'].search([])
+
+        # Reset all flags first
+        all_companies.write({'has_ksef_config': False})
+
+        # Set flag for companies that have active KSeF config
+        configs = self.search([('active', '=', True)])
+        companies_with_config = configs.mapped('company_id')
+
+        if companies_with_config:
+            companies_with_config.write({'has_ksef_config': True})
+            _logger.info(f'Set has_ksef_config=True for {len(companies_with_config)} companies')
+
+        return True
 
     @api.model
     def get_config(self, company_id=None):
