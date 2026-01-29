@@ -58,9 +58,11 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     # Визначаємо параметри формату
+    # CRITICAL: FA(2) and FA(3) both use kodSystemowy="FA (2)"!
+    # The ONLY difference is WariantFormularza (2 or 3)
     if format_version == 'FA3':
-        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'  # FA(3) може мати інший namespace
-        kod_systemowy = 'FA (3)'
+        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
+        kod_systemowy = 'FA (2)'  # NOT "FA (3)"! Both FA2 and FA3 use "FA (2)"
         wariant = '3'
         wersja_schemy = '1-0E'
     else:  # FA2 за замовчуванням
