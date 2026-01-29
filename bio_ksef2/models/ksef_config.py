@@ -58,6 +58,42 @@ class KSefConfig(models.Model):
         ('company_unique', 'unique(company_id)', 'Only one KSeF configuration per company is allowed!'),
     ]
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Set has_ksef_config flag on company when config is created"""
+        records = super().create(vals_list)
+        for record in records:
+            if record.company_id:
+                record.company_id.has_ksef_config = True
+        return records
+
+    def write(self, vals):
+        """Update has_ksef_config flag when active status changes"""
+        result = super().write(vals)
+        if 'active' in vals or 'company_id' in vals:
+            for record in self:
+                if record.company_id:
+                    # Check if any active config exists for this company
+                    has_config = self.search_count([
+                        ('company_id', '=', record.company_id.id),
+                        ('active', '=', True),
+                    ]) > 0
+                    record.company_id.has_ksef_config = has_config
+        return result
+
+    def unlink(self):
+        """Clear has_ksef_config flag on company when config is deleted"""
+        companies = self.mapped('company_id')
+        result = super().unlink()
+        for company in companies:
+            # Check if any active config still exists for this company
+            has_config = self.search_count([
+                ('company_id', '=', company.id),
+                ('active', '=', True),
+            ]) > 0
+            company.has_ksef_config = has_config
+        return result
+
     @api.model
     def get_config(self, company_id=None):
         """Get KSeF configuration for company"""
