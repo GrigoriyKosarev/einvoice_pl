@@ -58,18 +58,15 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     creation_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     # Визначаємо параметри формату
-    # CRITICAL: FA(2) and FA(3) both use kodSystemowy="FA (2)"!
-    # The ONLY difference is WariantFormularza (2 or 3)
-    if format_version == 'FA3':
-        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
-        kod_systemowy = 'FA (2)'  # NOT "FA (3)"! Both FA2 and FA3 use "FA (2)"
-        wariant = '3'
-        wersja_schemy = '1-0E'
-    else:  # FA2 за замовчуванням
-        namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
-        kod_systemowy = 'FA (2)'
-        wariant = '2'
-        wersja_schemy = '1-0E'
+    # CRITICAL: There is only ONE schema: kodSystemowy="FA (2)" with WariantFormularza=2
+    # "FA(3)" doesn't exist as separate schema variant!
+    # The XSD file (docs/FA3/schemat.xsd) only defines <xsd:enumeration value="2"/>
+    # DodatkowyOpis is already available in this schema (FA(2) WariantFormularza=2)
+    # The "FA3" parameter is kept for compatibility but always generates WariantFormularza=2
+    namespace = 'http://crd.gov.pl/wzor/2023/06/29/12648/'
+    kod_systemowy = 'FA (2)'
+    wariant = '2'  # ALWAYS 2 - this is the only valid value in XSD schema
+    wersja_schemy = '1-0E'
 
     # Початок XML
     xml_parts = [
@@ -349,24 +346,23 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         # When implemented, it must come BEFORE DodatkowyOpis
 
         # DodatkowyOpis - Customer-specific product information
-        # IMPORTANT: Only available in FA(3), NOT in FA(2)!
+        # Available in current FA(2) schema (docs/FA3/schemat.xsd)
         # CRITICAL: Must be ABSOLUTE LAST element in FaWiersz, after ALL other fields including StanPrzed!
         # XSD sequence: P_12 → P_12_XII → P_12_Zal_15 → KwotaAkcyzy → GTU → Procedura → KursWaluty → StanPrzed → DodatkowyOpis
-        if format_version == 'FA3':
-            if line.get('customer_product_code'):
-                xml_parts.extend([
-                    '            <DodatkowyOpis>',
-                    '                <Klucz>CustomerProductCode</Klucz>',
-                    f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
-                    '            </DodatkowyOpis>',
-                ])
-            if line.get('customer_product_name'):
-                xml_parts.extend([
-                    '            <DodatkowyOpis>',
-                    '                <Klucz>CustomerProductName</Klucz>',
-                    f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
-                    '            </DodatkowyOpis>',
-                ])
+        if line.get('customer_product_code'):
+            xml_parts.extend([
+                '            <DodatkowyOpis>',
+                '                <Klucz>CustomerProductCode</Klucz>',
+                f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
+                '            </DodatkowyOpis>',
+            ])
+        if line.get('customer_product_name'):
+            xml_parts.extend([
+                '            <DodatkowyOpis>',
+                '                <Klucz>CustomerProductName</Klucz>',
+                f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
+                '            </DodatkowyOpis>',
+            ])
 
         xml_parts.append('        </FaWiersz>')
 

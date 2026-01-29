@@ -18,11 +18,12 @@ def post_init_hook(cr, registry):
         env['ksef.config']._init_company_ksef_flags()
         _logger.info('Successfully initialized has_ksef_config flags')
 
-        # Migrate existing FA2 configs to FA3 (FA3 is mandatory from 01.02.2026)
-        fa2_configs = env['ksef.config'].search([('fa_version', '=', 'FA2')])
-        if fa2_configs:
-            fa2_configs.write({'fa_version': 'FA3'})
-            _logger.info(f'Migrated {len(fa2_configs)} KSeF configs from FA2 to FA3')
+        # Migrate FA3 configs back to FA2 (FA3 doesn't actually exist as separate schema)
+        # Both FA2 and FA3 generate identical XML: kodSystemowy="FA (2)", WariantFormularza=2
+        fa3_configs = env['ksef.config'].search([('fa_version', '=', 'FA3')])
+        if fa3_configs:
+            fa3_configs.write({'fa_version': 'FA2'})
+            _logger.info(f'Migrated {len(fa3_configs)} KSeF configs from FA3 to FA2 (FA3 is deprecated)')
 
     except Exception as e:
         _logger.error(f'Failed to run post_init_hook: {e}')
