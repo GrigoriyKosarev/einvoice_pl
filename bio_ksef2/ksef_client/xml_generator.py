@@ -294,9 +294,29 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
             f'            <P_7>{_escape_xml(line["name"])}</P_7>',
         ])
 
-        # index - код товару
+        # Indeks - Internal product code/SKU
         if line.get('index'):
             xml_parts.append(f'            <Indeks>{_escape_xml(line["index"])}</Indeks>')
+
+        # GTIN - Product barcode (cleaned from trailing special chars)
+        if line.get('gtin'):
+            xml_parts.append(f'            <GTIN>{_escape_xml(line["gtin"])}</GTIN>')
+
+        # DodatkowyOpis - Customer-specific product information
+        if line.get('customer_product_code'):
+            xml_parts.extend([
+                '            <DodatkowyOpis>',
+                '                <Klucz>CustomerProductCode</Klucz>',
+                f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
+                '            </DodatkowyOpis>',
+            ])
+        if line.get('customer_product_name'):
+            xml_parts.extend([
+                '            <DodatkowyOpis>',
+                '                <Klucz>CustomerProductName</Klucz>',
+                f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
+                '            </DodatkowyOpis>',
+            ])
 
         # P_8A - Miara (одиниця виміру)
         if line.get('unit'):
