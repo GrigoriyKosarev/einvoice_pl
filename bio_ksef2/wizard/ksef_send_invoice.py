@@ -104,15 +104,29 @@ class KSefSendInvoice(models.TransientModel):
             unit = line.product_uom_id.with_context(lang=company_lang).name if line.product_uom_id else 'szt'
 
             # product_name = product_name.replace('[', '').replace(']', '')
-            try:
-                product_name = line.sh_line_customer_product_name or line.name or line.product_id.name or 'Product/Service'
-            except:
-                product_name = line.name or line.product_id.name or 'Product/Service'
+            # P_7 - Product name (internal product name, NOT customer name)
+            product_name = line.name or line.product_id.name or 'Product/Service'
 
+            # Indeks - Internal product code (NOT customer code)
+            product_index = line.product_id.default_code or ""
+
+            # GTIN - Barcode (clean trailing special characters like "._")
+            product_gtin = ""
+            if line.product_id.barcode:
+                # Remove trailing special characters (e.g., "342342._" -> "342342")
+                import re
+                product_gtin = re.sub(r'[._\-\s]+$', '', line.product_id.barcode)
+
+            # Customer-specific product info (for DodatkowyOpis)
+            customer_product_code = ""
+            customer_product_name = ""
             try:
-                product_index = line.sh_line_customer_code or line.product_id.default_code or ""
-            except:
-                product_index = line.product_id.default_code or ""
+                # Try to get customer-specific product info if available
+                customer_product_code = line.sh_line_customer_code or ""
+                customer_product_name = line.sh_line_customer_product_name or ""
+            except AttributeError:
+                # Fields not available in this Odoo setup
+                pass
 
             # Calculate discount for P_10 field
             discount_percent = line.discount if line.discount else 0.0
@@ -136,6 +150,7 @@ class KSefSendInvoice(models.TransientModel):
             line_data = {
                 'name': product_name,
                 'index': product_index,
+                'gtin': product_gtin,  # GTIN barcode
                 'quantity': line.quantity,
                 'unit': unit,
                 'price_unit': original_price,  # P_9A - original price before discount (in invoice currency)
@@ -146,6 +161,8 @@ class KSefSendInvoice(models.TransientModel):
                 'gross_amount': line.price_total,
                 'currency_rate': currency_rate if is_foreign_currency else None,  # Exchange rate for this line
                 'procedure': procedure,  # WDT, EE, etc.
+                'customer_product_code': customer_product_code,  # For DodatkowyOpis
+                'customer_product_name': customer_product_name,  # For DodatkowyOpis
             }
 
             invoice_data['lines'].append(line_data)
