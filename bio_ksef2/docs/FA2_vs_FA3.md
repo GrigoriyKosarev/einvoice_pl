@@ -1,5 +1,22 @@
 # FA(2) vs FA(3) Schema Comparison
 
+## ⚠️ IMPORTANT: FA(3) Not Yet Available in KSeF
+
+**AS OF JANUARY 2026**: FA(3) schema is **NOT yet deployed** to KSeF system (test or production).
+
+**Current status:**
+- ✅ **FA(2)**: Fully working and accepted by KSeF
+- ⚠️ **FA(3)**: Schema exists in documentation but KSeF rejects it with error:
+  ```
+  Could not find schema information for the element 'http://crd.gov.pl/wzor/2025/06/25/13775/:Faktura'
+  ```
+
+**Recommendation**: **Use FA(2) only** until KSeF officially announces FA(3) support (expected around September 1, 2025).
+
+Our implementation is future-ready and will work automatically once KSeF activates FA(3).
+
+---
+
 ## Overview
 
 FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy System e-Faktur) system. They have different XML namespaces, different WariantFormularza values, and different supported features.
@@ -8,6 +25,7 @@ FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy Sy
 
 | Feature | FA(2) | FA(3) |
 |---------|-------|-------|
+| **KSeF Deployment Status** | ✅ Active | ⚠️ Not deployed yet |
 | **Namespace** | `http://crd.gov.pl/wzor/2023/06/29/12648/` | `http://crd.gov.pl/wzor/2025/06/25/13775/` |
 | **WariantFormularza** | `2` | `3` |
 | **kodSystemowy** | `FA (2)` | `FA (3)` |
@@ -97,6 +115,19 @@ The `fa_version` field allows selecting the format:
 4. Test that missing DodatkowyOpis doesn't cause errors
 
 ## Common Issues
+
+### Issue 0: FA(3) schema not found in KSeF
+**Symptom**: KSeF rejects FA(3) invoice with error:
+```
+Could not find schema information for the element 'http://crd.gov.pl/wzor/2025/06/25/13775/:Faktura'
+```
+
+**Cause**: FA(3) schema has not been deployed to KSeF system yet, even though it exists in official documentation
+
+**Solution**:
+- **Use FA(2)** until KSeF officially deploys FA(3) support
+- Monitor KSeF announcements for FA(3) availability (expected around September 1, 2025)
+- The code implementation is correct and will work automatically once KSeF activates FA(3)
 
 ### Issue 1: FA(3) rejects DodatkowyOpis
 **Symptom**: KSeF rejects invoice with error about invalid child element 'DodatkowyOpis'
