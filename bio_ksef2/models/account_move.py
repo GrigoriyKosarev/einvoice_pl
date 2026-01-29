@@ -52,7 +52,9 @@ class AccountMove(models.Model):
 
     has_ksef_config = fields.Boolean(
         string='Has KSeF Configuration',
-        compute='_compute_has_ksef_config',
+        related='company_id.has_ksef_config',
+        store=False,
+        readonly=True,
         help='Indicates if the company has KSeF configuration',
     )
 
@@ -69,18 +71,6 @@ class AccountMove(models.Model):
         help='Typ skutku korekty w ewidencji VAT (TypKorekty)',
         copy=False,
     )
-
-    @api.depends('company_id')
-    def _compute_has_ksef_config(self):
-        """Check if company has KSeF configuration"""
-        for move in self:
-            try:
-                config = self.env['ksef.config'].search([
-                    ('company_id', '=', move.company_id.id)
-                ], limit=1)
-                move.has_ksef_config = bool(config)
-            except Exception:
-                move.has_ksef_config = False
 
     def action_send_to_ksef(self):
         """Send invoice to KSeF"""
