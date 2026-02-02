@@ -151,8 +151,19 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'            <AdresL1>{_escape_xml(buyer.get("street", ""))}</AdresL1>',
         f'            <AdresL2>{buyer.get("zip", "")} {_escape_xml(buyer.get("city", ""))}</AdresL2>',
         '        </Adres>',
-        '    </Podmiot2>',
     ])
+
+    # FA(3) requires JST and GV fields in Podmiot2 (mandatory!)
+    # JST - Jednostka Samorządu Terytorialnego (territorial self-government unit)
+    # GV - Grupa VAT (VAT group member)
+    # Values: 1 = Yes, 2 = No
+    if format_version == 'FA3':
+        xml_parts.extend([
+            '        <JST>2</JST>',  # 2 = Not for JST distribution
+            '        <GV>2</GV>',    # 2 = Not a VAT group member
+        ])
+
+    xml_parts.append('    </Podmiot2>')
 
     # Дані факту��и (Fa)
     xml_parts.extend([
