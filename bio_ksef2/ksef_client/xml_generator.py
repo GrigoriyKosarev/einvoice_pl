@@ -301,6 +301,30 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
             xml_parts.append('        </DaneFaKorygowanej>')
 
+    # DodatkowyOpis - Additional description fields (FA(3) only)
+    # IMPORTANT: DodatkowyOpis is a child of <Fa>, NOT <FaWiersz>!
+    # It must come AFTER RodzajFaktury/DaneFaKorygowanej and BEFORE FaWiersz
+    # Uses NrWiersza to link to specific invoice line
+    if format_version == 'FA3':
+        for idx, line in enumerate(invoice_data['lines'], start=1):
+            # CustomerProductCode
+            if line.get('customer_product_code'):
+                xml_parts.extend([
+                    '        <DodatkowyOpis>',
+                    f'            <NrWiersza>{idx}</NrWiersza>',
+                    '            <Klucz>CustomerProductCode</Klucz>',
+                    f'            <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
+                    '        </DodatkowyOpis>',
+                ])
+            # CustomerProductName
+            if line.get('customer_product_name'):
+                xml_parts.extend([
+                    '        <DodatkowyOpis>',
+                    f'            <NrWiersza>{idx}</NrWiersza>',
+                    '            <Klucz>CustomerProductName</Klucz>',
+                    f'            <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
+                    '        </DodatkowyOpis>',
+                ])
 
     # Рядки товарів/послуг (FaWiersz)
     # Згідно з офіційним XSD:
@@ -367,27 +391,6 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
         # TODO: StanPrzed - stan przed korektą (for credit notes with quantity changes, optional)
         # NOTE: This field shows state BEFORE correction for credit notes
-
-        # DodatkowyOpis - Customer-specific product information
-        # IMPORTANT: Supported ONLY in FA(3), NOT in FA(2)!
-        # FA(2) rejected with: "invalid child element 'DodatkowyOpis'"
-        # FA(3) schema includes DodatkowyOpis: http://crd.gov.pl/wzor/2025/06/25/13775/schemat.xsd
-        if format_version == 'FA3':
-            # Add DodatkowyOpis only for FA(3)
-            if line.get('customer_product_code'):
-                xml_parts.extend([
-                    '            <DodatkowyOpis>',
-                    '                <Klucz>CustomerProductCode</Klucz>',
-                    f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
-                    '            </DodatkowyOpis>',
-                ])
-            if line.get('customer_product_name'):
-                xml_parts.extend([
-                    '            <DodatkowyOpis>',
-                    '                <Klucz>CustomerProductName</Klucz>',
-                    f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
-                    '            </DodatkowyOpis>',
-                ])
 
         xml_parts.append('        </FaWiersz>')
 
