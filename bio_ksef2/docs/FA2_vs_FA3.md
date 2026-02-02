@@ -1,19 +1,26 @@
 # FA(2) vs FA(3) Schema Comparison
 
-## ⚠️ IMPORTANT: FA(3) Not Yet Available in KSeF
+## 🚨 CRITICAL: FA(3) STILL NOT AVAILABLE in KSeF (as of February 2, 2026)
 
-**AS OF JANUARY 2026**: FA(3) schema is **NOT yet deployed** to KSeF system (test or production).
+**LATEST UPDATE - FEBRUARY 2, 2026**: FA(3) schema is **STILL NOT deployed** to KSeF system!
+
+**Timeline:**
+- 📅 **Expected activation**: September 1, 2025
+- ⏰ **Current date**: February 2, 2026 (5 months after expected date)
+- ❌ **Status**: FA(3) STILL rejected by KSeF
 
 **Current status:**
-- ✅ **FA(2)**: Fully working and accepted by KSeF
-- ⚠️ **FA(3)**: Schema exists in documentation but KSeF rejects it with error:
+- ✅ **FA(2)**: Fully working and accepted by KSeF (still active past Aug 31, 2025 deadline!)
+- ❌ **FA(3)**: Schema exists in documentation but KSeF rejects it with error:
   ```
   Could not find schema information for the element 'http://crd.gov.pl/wzor/2025/06/25/13775/:Faktura'
   ```
 
-**Recommendation**: **Use FA(2) only** until KSeF officially announces FA(3) support (expected around September 1, 2025).
+**⚠️ STRONG RECOMMENDATION**: **Use FA(2) ONLY!**
 
-Our implementation is future-ready and will work automatically once KSeF activates FA(3).
+FA(3) deployment has been significantly delayed or possibly cancelled. Do not wait for FA(3) - it may never be activated, or the activation date may be much later than originally planned.
+
+Our implementation is future-ready and will work automatically IF/WHEN KSeF activates FA(3).
 
 ---
 
@@ -25,12 +32,12 @@ FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy Sy
 
 | Feature | FA(2) | FA(3) |
 |---------|-------|-------|
-| **KSeF Deployment Status** | ✅ Active | ⚠️ Not deployed yet |
+| **KSeF Deployment Status** | ✅ Active (still working Feb 2026) | ❌ Not deployed (5+ months delay) |
 | **Namespace** | `http://crd.gov.pl/wzor/2023/06/29/12648/` | `http://crd.gov.pl/wzor/2025/06/25/13775/` |
 | **WariantFormularza** | `2` | `3` |
 | **kodSystemowy** | `FA (2)` | `FA (3)` |
 | **Schema Version** | `1-0E` | `1-0E` |
-| **Valid Date Range** | Until Aug 31, 2025 | Sept 1, 2025 - Jan 1, 2050 |
+| **Expected Valid Date Range** | Until Aug 31, 2025 ⚠️ Still active! | Sept 1, 2025 - Jan 1, 2050 ❌ Never activated |
 | **DodatkowyOpis Support** | ❌ NO | ❌ NO |
 | **Customer Product Info** | ❌ NOT supported | ❌ NOT supported |
 
@@ -81,14 +88,22 @@ Since `DodatkowyOpis` cannot be used, consider these alternatives:
 
 ## Migration Timeline
 
-### Until August 31, 2025
-- **Use FA(2)** for all invoices
-- Standard fields: P_7, Indeks, GTIN available
+### ⚠️ UPDATED Timeline (as of February 2, 2026)
 
-### From September 1, 2025
-- **Switch to FA(3)** (when KSeF deploys it)
-- Same standard fields available as FA(2)
-- Monitor KSeF announcements for FA(3) deployment
+**ORIGINAL PLAN (obsolete):**
+- Until August 31, 2025: Use FA(2)
+- From September 1, 2025: Switch to FA(3)
+
+**ACTUAL SITUATION:**
+- ✅ **February 2, 2026**: FA(2) is STILL the only working format
+- ❌ **FA(3)**: Never activated (5+ months past expected date)
+- 🔮 **Future**: Unknown - KSeF has not announced new FA(3) deployment date
+
+### Current Recommendation:
+- **Continue using FA(2)** indefinitely
+- FA(2) deadline (Aug 31, 2025) has passed, but FA(2) still works
+- Do NOT attempt to use FA(3) - it will be rejected
+- Monitor official KSeF announcements for any updates (though none have been issued)
 
 ## Implementation in Code
 
@@ -137,12 +152,18 @@ The `fa_version` field allows selecting the format:
 Could not find schema information for the element 'http://crd.gov.pl/wzor/2025/06/25/13775/:Faktura'
 ```
 
-**Cause**: FA(3) schema has not been deployed to KSeF system yet, even though it exists in official documentation
+**Cause**: FA(3) schema has not been deployed to KSeF system, even though it exists in official documentation
+
+**Timeline:**
+- Expected deployment: September 1, 2025
+- Tested on: February 2, 2026 (5 months later)
+- Status: STILL NOT DEPLOYED
 
 **Solution**:
-- **Use FA(2)** until KSeF officially deploys FA(3) support
-- Monitor KSeF announcements for FA(3) availability (expected around September 1, 2025)
-- The code implementation is correct and will work automatically once KSeF activates FA(3)
+- **Use FA(2)** - this is the ONLY working format
+- FA(3) deployment has been significantly delayed or cancelled
+- Do NOT wait for FA(3) - continue with FA(2) indefinitely
+- The code implementation is correct and will work automatically IF KSeF ever activates FA(3)
 
 ### Issue 1: DodatkowyOpis not supported
 **Symptom**: KSeF rejects invoice with error:
