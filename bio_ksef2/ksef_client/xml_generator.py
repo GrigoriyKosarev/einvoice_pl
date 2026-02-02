@@ -368,13 +368,26 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         # TODO: StanPrzed - stan przed korektą (for credit notes with quantity changes, optional)
         # NOTE: This field shows state BEFORE correction for credit notes
 
-        # NOTE: DodatkowyOpis is NOT supported in FA(2) or FA(3)!
-        # KSeF validation confirms: "List of possible elements expected: P_12_XII, P_12_Zal_15,
-        # KwotaAkcyzy, GTU, Procedura, KursWaluty, StanPrzed"
-        # DodatkowyOpis is not in the list of valid elements.
-        #
-        # Customer Product Code/Name cannot be added via DodatkowyOpis.
-        # Alternative: Use P_7 (product description) field or add to Indeks field if needed.
+        # DodatkowyOpis - Customer-specific product information
+        # IMPORTANT: Supported ONLY in FA(3), NOT in FA(2)!
+        # FA(2) rejected with: "invalid child element 'DodatkowyOpis'"
+        # FA(3) schema includes DodatkowyOpis: http://crd.gov.pl/wzor/2025/06/25/13775/schemat.xsd
+        if format_version == 'FA3':
+            # Add DodatkowyOpis only for FA(3)
+            if line.get('customer_product_code'):
+                xml_parts.extend([
+                    '            <DodatkowyOpis>',
+                    '                <Klucz>CustomerProductCode</Klucz>',
+                    f'                <Wartosc>{_escape_xml(line["customer_product_code"])}</Wartosc>',
+                    '            </DodatkowyOpis>',
+                ])
+            if line.get('customer_product_name'):
+                xml_parts.extend([
+                    '            <DodatkowyOpis>',
+                    '                <Klucz>CustomerProductName</Klucz>',
+                    f'                <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
+                    '            </DodatkowyOpis>',
+                ])
 
         xml_parts.append('        </FaWiersz>')
 

@@ -37,9 +37,10 @@ FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy Sy
 | **WariantFormularza** | `2` | `3` |
 | **kodSystemowy** | `FA (2)` | `FA (3)` |
 | **Schema Version** | `1-0E` | `1-0E` |
-| **Expected Valid Date Range** | Until Aug 31, 2025 ⚠️ Still active! | Sept 1, 2025 - Jan 1, 2050 ❌ Never activated |
-| **DodatkowyOpis Support** | ❌ NO | ❌ NO |
-| **Customer Product Info** | ❌ NOT supported | ❌ NOT supported |
+| **Expected Valid Date Range** | Until Aug 31, 2025 ⚠️ Still active! | Sept 1, 2025 - Jan 1, 2050 ✅ NOW ACTIVE |
+| **DodatkowyOpis Support** | ❌ NO | ✅ YES |
+| **Customer Product Info** | ❌ NOT supported | ✅ Supported via DodatkowyOpis |
+| **Mandatory Fields (Podmiot2)** | DaneIdentyfikacyjne, Adres | DaneIdentyfikacyjne, JST, GV |
 
 ## Schema URLs
 
@@ -53,21 +54,53 @@ FA(2) and FA(3) are **SEPARATE** invoice schemas for the Polish KSeF (Krajowy Sy
 - **Style XSL**: http://crd.gov.pl/wzor/2025/06/25/13775/styl.xsl
 - **Namespace**: `http://crd.gov.pl/wzor/2025/06/25/13775/`
 
-## ❌ DodatkowyOpis (Customer Product Information) - NOT SUPPORTED
+## DodatkowyOpis (Customer Product Information)
 
-**IMPORTANT DISCOVERY**: The `DodatkowyOpis` element is **NOT supported** in either FA(2) or FA(3)!
+**IMPORTANT DISCOVERY**: The `DodatkowyOpis` element is supported **ONLY in FA(3)**, NOT in FA(2)!
 
-**KSeF validation error confirms this:**
+### FA(2): NOT Supported ❌
+
+**KSeF validation error for FA(2):**
 ```
 The element 'FaWiersz' has invalid child element 'DodatkowyOpis'.
 List of possible elements expected: 'P_12_XII, P_12_Zal_15, KwotaAkcyzy, GTU, Procedura, KursWaluty, StanPrzed'
 ```
 
-`DodatkowyOpis` is **not in the list** of valid FaWiersz child elements.
+`DodatkowyOpis` is **not in the list** of valid FaWiersz child elements in FA(2).
 
-### Alternative Solutions for Customer Product Info
+### FA(3): Fully Supported ✅
 
-Since `DodatkowyOpis` cannot be used, consider these alternatives:
+**FA(3) schema includes DodatkowyOpis:**
+- Schema URL: http://crd.gov.pl/wzor/2025/06/25/13775/schemat.xsd
+- Structure: Key-Value pairs for custom product information
+
+**Example FA(3) usage:**
+```xml
+<FaWiersz>
+    <NrWierszaFa>1</NrWierszaFa>
+    <P_7>[YOUR-SKU] Product Name</P_7>
+    <Indeks>YOUR-INTERNAL-SKU</Indeks>
+    <GTIN>1234567890123</GTIN>
+    <P_8A>szt</P_8A>
+    <P_8B>10.00</P_8B>
+    <P_9A>100.00</P_9A>
+    <P_11>1000.00</P_11>
+    <P_12>23</P_12>
+    <!-- ✅ DodatkowyOpis works in FA(3)! -->
+    <DodatkowyOpis>
+        <Klucz>CustomerProductCode</Klucz>
+        <Wartosc>CUSTOMER-SKU-123</Wartosc>
+    </DodatkowyOpis>
+    <DodatkowyOpis>
+        <Klucz>CustomerProductName</Klucz>
+        <Wartosc>Customer's Product Name</Wartosc>
+    </DodatkowyOpis>
+</FaWiersz>
+```
+
+### Alternative Solutions for FA(2)
+
+Since `DodatkowyOpis` cannot be used in FA(2), consider these alternatives:
 
 1. **P_7 (Product Description)**: Include customer-specific product name/code in the description field
    ```xml
@@ -84,7 +117,11 @@ Since `DodatkowyOpis` cannot be used, consider these alternatives:
    <GTIN>1234567890123</GTIN>
    ```
 
-**Conclusion**: Customer-specific product information cannot be structured separately in KSeF invoices. It must be included in the standard P_7 description field if needed.
+4. **Upgrade to FA(3)**: To use structured DodatkowyOpis fields
+
+**Conclusion**:
+- **FA(2)**: Customer info must be included in P_7 description field
+- **FA(3)**: Customer info can be structured separately via DodatkowyOpis
 
 ## Migration Timeline
 
