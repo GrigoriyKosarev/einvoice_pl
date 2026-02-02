@@ -25,16 +25,18 @@ _logger = logging.getLogger(__name__)
 class InvoiceSession:
     """Клас для роботи з онлайн сесією відправки інвойсів"""
 
-    def __init__(self, api_url: str, access_token: str):
+    def __init__(self, api_url: str, access_token: str, fa_version: str = 'FA2'):
         """
         Ініціалізація сесії відправки інвойсів
 
         Args:
             api_url: URL API KSeF
             access_token: Access token отриманий після автентифікації
+            fa_version: Версія формату FA ('FA2' або 'FA3')
         """
         self.api_url = api_url
         self.access_token = access_token
+        self.fa_version = fa_version
         self.session_reference = None
         self.is_active = False
         self.aes_key = None  # Симетричний ключ AES для шифрування
@@ -75,9 +77,15 @@ class InvoiceSession:
             )
 
             # 4. Формуємо body запиту
+            # Визначаємо systemCode залежно від fa_version
+            if self.fa_version == 'FA3':
+                system_code = "FA (3)"
+            else:
+                system_code = "FA (2)"
+
             body = {
                 "formCode": {
-                    "systemCode": "FA (2)",
+                    "systemCode": system_code,
                     "schemaVersion": "1-0E",
                     "value": "FA"
                 },

@@ -240,8 +240,11 @@ class KSefSendInvoice(models.TransientModel):
             # Generate invoice XML
             invoice_xml = self._generate_invoice_xml(self.invoice_id)
 
-            # Open session
-            session = ksef_invoice.InvoiceSession(config.api_url, auth_client.token)
+            # Get fa_version from config
+            fa_version = config.fa_version or 'FA2'
+
+            # Open session with fa_version
+            session = ksef_invoice.InvoiceSession(config.api_url, auth_client.token, fa_version=fa_version)
             if not session.open():
                 raise UserError(_('Failed to open KSeF session'))
 

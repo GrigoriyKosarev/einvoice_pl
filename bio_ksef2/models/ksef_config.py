@@ -45,23 +45,27 @@ class KSefConfig(models.Model):
     )
     fa_version = fields.Selection(
         [
-            ('FA2', 'FA(2) - Current schema (valid until Aug 31, 2025)'),
-            ('FA3', 'FA(3) - New schema (NOT YET AVAILABLE in KSeF!)'),
+            ('FA2', 'FA(2) - ONLY working format'),
+            ('FA3', 'FA(3) - DOES NOT WORK! (5+ months delayed)'),
         ],
         string='Invoice Format Version',
         required=True,
         default='FA2',
         help='Invoice format version for KSeF submissions.\n\n'
-             'FA(2): ✅ Currently working - Use this!\n'
+             'FA(2): ✅ ONLY working format - Always use this!\n'
              '  - Namespace: http://crd.gov.pl/wzor/2023/06/29/12648/\n'
              '  - WariantFormularza=2\n'
-             '  - Standard fields: P_7, Indeks, GTIN, etc.\n\n'
-             'FA(3): ⚠️ NOT YET DEPLOYED to KSeF system!\n'
+             '  - Standard fields: P_7, Indeks, GTIN, etc.\n'
+             '  - Still active as of February 2026 (past original Aug 2025 deadline)\n\n'
+             'FA(3): ❌ DOES NOT WORK - DO NOT USE!\n'
              '  - Namespace: http://crd.gov.pl/wzor/2025/06/25/13775/\n'
              '  - WariantFormularza=3\n'
-             '  - Will be available from September 1, 2025\n'
-             '  - Currently KSeF rejects with: "Could not find schema information"\n\n'
-             'IMPORTANT: Use FA(2) until KSeF officially announces FA(3) support.\n\n'
+             '  - Expected: September 1, 2025\n'
+             '  - Tested: February 2, 2026 (5+ months delay)\n'
+             '  - Status: STILL NOT DEPLOYED by KSeF\n'
+             '  - Error: "Could not find schema information"\n\n'
+             '🚨 CRITICAL: FA(3) deployment significantly delayed or cancelled.\n'
+             'Continue using FA(2) indefinitely until official KSeF announcement.\n\n'
              'NOTE: DodatkowyOpis is NOT supported in either FA(2) or FA(3)!',
     )
 
