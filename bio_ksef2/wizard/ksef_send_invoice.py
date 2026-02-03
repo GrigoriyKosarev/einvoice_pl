@@ -100,6 +100,24 @@ class KSefSendInvoice(models.TransientModel):
             # Format date as YYYY-MM-DD for FA(3) DataZamowienia (TDataU type)
             invoice_data['order_date'] = sale_order_id.date_order.strftime('%Y-%m-%d')
 
+        # Delivery address (Podmiot3) - if different from invoice partner
+        # IMPORTANT: Get delivery address ONLY from invoice, not from sale order
+        # This ensures delivery address is explicitly set and controlled
+        if hasattr(invoice, 'partner_shipping_id') and invoice.partner_shipping_id:
+            delivery_partner = invoice.partner_shipping_id
+
+            # Add delivery address only if it differs from invoice partner
+            if delivery_partner != invoice.partner_id:
+                invoice_data['delivery_address'] = {
+                    'name': delivery_partner.name,
+                    'street': delivery_partner.street or '',
+                    'city': delivery_partner.city or '',
+                    'zip': delivery_partner.zip or '',
+                    'country': delivery_partner.country_id.code if delivery_partner.country_id else 'PL',
+                    'nip': delivery_partner.vat or '',
+                    'gln': delivery_partner.gln_code or '',  # GLN from dedicated field
+                }
+
         # Process invoice lines
         for line in invoice.invoice_line_ids:
             if line.display_type != 'product':  # Skip section/note lines

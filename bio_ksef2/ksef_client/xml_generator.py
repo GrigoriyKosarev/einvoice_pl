@@ -172,6 +172,42 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
     xml_parts.append('    </Podmiot2>')
 
+    # Podmiot3 - Third party (delivery address if different from buyer)
+    # Rola = 2 means "Odbiorca" (receiver/delivery recipient)
+    delivery = invoice_data.get('delivery_address')
+    if delivery:
+        xml_parts.extend([
+            '    <Podmiot3>',
+            '        <DaneIdentyfikacyjne>',
+        ])
+
+        # If delivery has tax ID (NIP or VAT), use it; otherwise use BrakID
+        delivery_nip = delivery.get('nip', '')
+        if delivery_nip:
+            xml_parts.append(f'            <NIP>{_clean_nip(delivery_nip)}</NIP>')
+        else:
+            xml_parts.append('            <BrakID>1</BrakID>')
+
+        xml_parts.extend([
+            f'            <Nazwa>{_escape_xml(delivery["name"])}</Nazwa>',
+            '        </DaneIdentyfikacyjne>',
+            '        <Adres>',
+            f'            <KodKraju>{delivery.get("country", "PL")}</KodKraju>',
+            f'            <AdresL1>{_escape_xml(delivery.get("street", ""))}</AdresL1>',
+            f'            <AdresL2>{delivery.get("zip", "")} {_escape_xml(delivery.get("city", ""))}</AdresL2>',
+        ])
+
+        # GLN (Global Location Number) - optional
+        if delivery.get('gln'):
+            xml_parts.append(f'            <GLN>{delivery["gln"]}</GLN>')
+
+        xml_parts.extend([
+            '        </Adres>',
+            '        <Rola>2</Rola>',  # 2 = Odbiorca (receiver/delivery recipient)
+            '    </Podmiot3>',
+        ])
+
+
     # Дані факту��и (Fa)
     xml_parts.extend([
         '    <Fa>',
