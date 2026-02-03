@@ -401,6 +401,8 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         ])
 
         # DataZamowienia - order date (optional)
+        # IMPORTANT: DataZamowienia requires TDataU format (YYYY-MM-DD)
+        # Date should already be formatted as string in wizard
         if invoice_data.get('order_date'):
             xml_parts.append(f'                <DataZamowienia>{invoice_data["order_date"]}</DataZamowienia>')
 
