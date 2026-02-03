@@ -172,11 +172,6 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'        <P_1>{invoice_data["issue_date"]}</P_1>',
         f'        <P_2>{_escape_xml(invoice_data["invoice_number"])}</P_2>',
         f'        <P_6>{invoice_data["date_of_receipt_by_buyer"]}</P_6>',
-        '         <WarunkiTransakcji>',
-        f'              <Zamowienia>',
-        f'                  <NrZamowienia>{_escape_xml(invoice_data["ref"])}</NrZamowienia>',
-        f'              </Zamowienia>',
-        '         </WarunkiTransakcji>',
     ])
 
     # Підсумки за ставками ПДВ
@@ -395,6 +390,17 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         # NOTE: This field shows state BEFORE correction for credit notes
 
         xml_parts.append('        </FaWiersz>')
+
+    # WarunkiTransakcji - Transaction conditions (must come AFTER FaWiersz)
+    # According to FA(3) XSD: WarunkiTransakcji comes after Platnosc, after FaWiersz
+    if invoice_data.get('ref'):
+        xml_parts.extend([
+            '        <WarunkiTransakcji>',
+            '            <Zamowienia>',
+            f'                <NrZamowienia>{_escape_xml(invoice_data["ref"])}</NrZamowienia>',
+            '            </Zamowienia>',
+            '        </WarunkiTransakcji>',
+        ])
 
     # Закриваємо XML
     xml_parts.extend([
