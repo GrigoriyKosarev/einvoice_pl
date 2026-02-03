@@ -171,10 +171,12 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'        <KodWaluty>{invoice_data.get("currency", "PLN")}</KodWaluty>',
         f'        <P_1>{invoice_data["issue_date"]}</P_1>',
         f'        <P_2>{_escape_xml(invoice_data["invoice_number"])}</P_2>',
-        # f'        <P_6>{invoice_data["sale_date"]}</P_6>',
-        # '         <WarunkiTransakcji>',
-        # f'              <TerminPlatnosci>{invoice_data["payment_date"]}</TerminPlatnosci>',
-        # '         </WarunkiTransakcji>',
+        f'        <P_6>{invoice_data["date_of_receipt_by_buyer"]}</P_6>',
+        '         <WarunkiTransakcji>',
+        f'              <Zamowienia>',
+        f'                  <NrZamowienia>{_escape_xml(invoice_data["ref"])}</NrZamowienia>',
+        f'              </Zamowienia>',
+        '         </WarunkiTransakcji>',
     ])
 
     # Підсумки за ставками ПДВ

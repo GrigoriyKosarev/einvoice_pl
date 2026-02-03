@@ -54,6 +54,8 @@ class KSefSendInvoice(models.TransientModel):
         # Prepare invoice data
         invoice_data = {
             'invoice_number': invoice.name,
+            'date_of_receipt_by_buyer': invoice.date_of_receipt_by_buyer.strftime('%Y-%m-%d') if invoice.date_of_receipt_by_buyer else None,
+            'ref': invoice.ref if invoice.ref else '',
             'issue_date': issue_date,
             'sale_date': issue_date,
             'payment_date': invoice.invoice_date_due.strftime('%Y-%m-%d') if invoice.invoice_date_due else issue_date,
