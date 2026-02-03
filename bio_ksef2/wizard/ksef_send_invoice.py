@@ -101,28 +101,22 @@ class KSefSendInvoice(models.TransientModel):
             invoice_data['order_date'] = sale_order_id.date_order.strftime('%Y-%m-%d')
 
         # Delivery address (Podmiot3) - if different from invoice partner
-        # Check invoice for delivery address (partner_shipping_id)
-        # In Odoo account.move, delivery address can be set via partner_shipping_id field
-        delivery_partner = None
-
-        # Try to get delivery address from invoice first
+        # IMPORTANT: Get delivery address ONLY from invoice, not from sale order
+        # This ensures delivery address is explicitly set and controlled
         if hasattr(invoice, 'partner_shipping_id') and invoice.partner_shipping_id:
             delivery_partner = invoice.partner_shipping_id
-        # Fallback to sale order if invoice doesn't have shipping partner
-        elif sale_order_id and sale_order_id.partner_shipping_id:
-            delivery_partner = sale_order_id.partner_shipping_id
 
-        # Add delivery address only if it differs from invoice partner
-        if delivery_partner and delivery_partner != invoice.partner_id:
-            invoice_data['delivery_address'] = {
-                'name': delivery_partner.name,
-                'street': delivery_partner.street or '',
-                'city': delivery_partner.city or '',
-                'zip': delivery_partner.zip or '',
-                'country': delivery_partner.country_id.code if delivery_partner.country_id else 'PL',
-                'nip': delivery_partner.vat or '',
-                'gln': delivery_partner.ref or '',  # GLN is stored in ref field
-            }
+            # Add delivery address only if it differs from invoice partner
+            if delivery_partner != invoice.partner_id:
+                invoice_data['delivery_address'] = {
+                    'name': delivery_partner.name,
+                    'street': delivery_partner.street or '',
+                    'city': delivery_partner.city or '',
+                    'zip': delivery_partner.zip or '',
+                    'country': delivery_partner.country_id.code if delivery_partner.country_id else 'PL',
+                    'nip': delivery_partner.vat or '',
+                    'gln': delivery_partner.gln_code or '',  # GLN from dedicated field
+                }
 
         # Process invoice lines
         for line in invoice.invoice_line_ids:
