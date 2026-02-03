@@ -97,6 +97,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     seller = invoice_data['seller']
     xml_parts.extend([
         '    <Podmiot1>',
+        '        <PrefiksPodatnika>PL</PrefiksPodatnika>',
         '        <DaneIdentyfikacyjne>',
         f'            <NIP>{_clean_nip(seller["nip"])}</NIP>',
         f'            <Nazwa>{_escape_xml(seller["name"])}</Nazwa>',
@@ -105,6 +106,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'            <KodKraju>{seller.get("country", "PL")}</KodKraju>',
         f'            <AdresL1>{_escape_xml(seller.get("street", ""))}</AdresL1>',
         f'            <AdresL2>{seller.get("zip", "")} {_escape_xml(seller.get("city", ""))}</AdresL2>',
+        f'            <GLN>{seller.get("gln", "")}</GLN>',
         '        </Adres>',
         '    </Podmiot1>',
     ])
@@ -150,6 +152,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'            <KodKraju>{buyer_country}</KodKraju>',
         f'            <AdresL1>{_escape_xml(buyer.get("street", ""))}</AdresL1>',
         f'            <AdresL2>{buyer.get("zip", "")} {_escape_xml(buyer.get("city", ""))}</AdresL2>',
+        f'            <GLN>{buyer.get("gln", "")}</AdresL2>',
         '        </Adres>',
     ])
 

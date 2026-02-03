@@ -71,6 +71,7 @@ class KSefSendInvoice(models.TransientModel):
                 'city': invoice.company_id.city or '',
                 'zip': invoice.company_id.zip or '',
                 'country': invoice.company_id.country_id.code or 'PL',
+                'gln': invoice.company_id.partner_id.gln_code or '',
             },
 
             # Buyer data (customer)
@@ -81,6 +82,7 @@ class KSefSendInvoice(models.TransientModel):
                 'city': invoice.partner_id.city or '',
                 'zip': invoice.partner_id.zip or '',
                 'country': invoice.partner_id.country_id.code or 'PL',
+                'gln': invoice.partner_id.gln_code or '',
             },
 
             # Invoice lines
