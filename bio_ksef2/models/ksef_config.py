@@ -27,7 +27,8 @@ class KSefConfig(models.Model):
         [
             ('https://api-test.ksef.mf.gov.pl', 'Test Environment 2026'),
             ('https://ksef-test.mf.gov.pl', 'Test Environment'),
-            ('https://ksef.mf.gov.pl', 'Production Environment'),
+            # ('https://ksef.mf.gov.pl', 'Production Environment'),
+            ('https://api.ksef.mf.gov.pl', 'Production Environment'),
         ],
         string='API Environment',
         required=True,
