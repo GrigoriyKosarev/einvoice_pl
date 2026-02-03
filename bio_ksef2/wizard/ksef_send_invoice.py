@@ -95,7 +95,8 @@ class KSefSendInvoice(models.TransientModel):
         sale_order_ids = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
         sale_order_id = sale_order_ids[0] if sale_order_ids else None
         if sale_order_id:
-            invoice_data['order_date'] = sale_order_id.date_order
+            # Format date as YYYY-MM-DD for FA(3) DataZamowienia (TDataU type)
+            invoice_data['order_date'] = sale_order_id.date_order.strftime('%Y-%m-%d')
 
         # Process invoice lines
         for line in invoice.invoice_line_ids:
