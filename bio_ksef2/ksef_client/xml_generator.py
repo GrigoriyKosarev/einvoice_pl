@@ -393,10 +393,11 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
     # WarunkiTransakcji - Transaction conditions (must come AFTER FaWiersz)
     # According to FA(3) XSD: WarunkiTransakcji comes after Platnosc, after FaWiersz
+    data_zamowienia = f'<DataZamowienia>{_escape_xml(invoice_data["order_date"])}</DataZamowienia>' if invoice_data['order_date'] else ""
     if invoice_data.get('ref'):
         xml_parts.extend([
             '        <WarunkiTransakcji>',
-            '            <Zamowienia>',
+            f'{data_zamowienia}',
             f'                <NrZamowienia>{_escape_xml(invoice_data["ref"])}</NrZamowienia>',
             '            </Zamowienia>',
             '        </WarunkiTransakcji>',
