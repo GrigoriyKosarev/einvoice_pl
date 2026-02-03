@@ -92,6 +92,11 @@ class KSefSendInvoice(models.TransientModel):
             'total_gross': invoice.amount_total,
         }
 
+        sale_order_ids = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
+        sale_order_id = sale_order_ids[0] if sale_order_ids else None
+        if sale_order_id:
+            invoice_data['order_date'] = sale_order_id.date_order
+
         # Process invoice lines
         for line in invoice.invoice_line_ids:
             if line.display_type != 'product':  # Skip section/note lines
