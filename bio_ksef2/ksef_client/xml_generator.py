@@ -507,7 +507,7 @@ def _clean_nip(nip: str) -> str:
 
 
 def _format_currency_rate(rate: float) -> str:
-    """
+    r"""
     Форматує курс валюти згідно з XSD вимогами для TIlosci
 
     TIlosci дозволяє максимум 6 знаків після коми
