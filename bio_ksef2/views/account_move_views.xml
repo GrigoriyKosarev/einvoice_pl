@@ -13,6 +13,11 @@
                 <field name="has_ksef_config" invisible="1"/>
             </xpath>
 
+            <!-- Add Delivery Note Number field to sale info group -->
+            <xpath expr="//group[@name='sale_info_group']" position="inside">
+                <field name="delivery_note_number"/>
+            </xpath>
+
             <!-- Add KSeF button in header -->
             <xpath expr="//header/button[@name='action_post']" position="after">
                 <button name="action_send_to_ksef"
