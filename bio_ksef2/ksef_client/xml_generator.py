@@ -214,8 +214,15 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'        <KodWaluty>{invoice_data.get("currency", "PLN")}</KodWaluty>',
         f'        <P_1>{invoice_data["issue_date"]}</P_1>',
         f'        <P_2>{_escape_xml(invoice_data["invoice_number"])}</P_2>',
-        f'        <P_6>{invoice_data["date_of_receipt_by_buyer"]}</P_6>',
     ])
+
+    # WZ - Delivery note number (optional)
+    # Must come AFTER P_2 and BEFORE P_6 per FA(3) schema
+    delivery_note_number = invoice_data.get('delivery_note_number')
+    if delivery_note_number:
+        xml_parts.append(f'        <WZ>{_escape_xml(delivery_note_number)}</WZ>')
+
+    xml_parts.append(f'        <P_6>{invoice_data["date_of_receipt_by_buyer"]}</P_6>')
 
     # Підсумки за ставками ПДВ
     # IMPORTANT: Amounts in P_13_*, P_14_*, P_15 must be in document currency (e.g., EUR)
@@ -365,12 +372,6 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
                     f'            <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
                     '        </DodatkowyOpis>',
                 ])
-
-    # WZ - Delivery note number (optional)
-    # Must come AFTER DodatkowyOpis and BEFORE FaWiersz
-    delivery_note_number = invoice_data.get('delivery_note_number')
-    if delivery_note_number:
-        xml_parts.append(f'        <WZ>{_escape_xml(delivery_note_number)}</WZ>')
 
     # Рядки товарів/послуг (FaWiersz)
     # Згідно з офіційним XSD:
