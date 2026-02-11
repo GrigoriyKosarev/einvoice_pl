@@ -99,21 +99,19 @@ class KSefSendInvoice(models.TransientModel):
 
         # Parse payment term from invoice
         if invoice.invoice_payment_term_id:
-            payment_term_name = invoice.invoice_payment_term_id.name
+            # Get payment term name in Polish for KSeF
+            payment_term_pl = invoice.invoice_payment_term_id.with_context(lang='pl_PL')
+            payment_term_name = payment_term_pl.name
             # Try to extract number of days from payment term name
             # Examples: "14 dni", "30 Days", "Natychmiast", "7 days net"
             import re
             days_match = re.search(r'(\d+)', payment_term_name)
             if days_match:
                 days = int(days_match.group(1))
-                # Determine unit (dni/days) - default to "dni" for Polish
-                unit = "dni"
-                if 'day' in payment_term_name.lower():
-                    unit = "days"
 
                 invoice_data['payment_term'] = {
                     'days': days,
-                    'unit': unit,
+                    'unit': 'dni',  # Always use Polish for KSeF
                     'event': 'wystawienie faktury',  # Default: invoice issue
                 }
 
