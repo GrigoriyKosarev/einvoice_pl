@@ -116,6 +116,7 @@ class KSefSendInvoice(models.TransientModel):
                     'days': days,
                     'unit': 'dni',  # Always use Polish for KSeF
                     'event': 'wystawienie faktury',  # Default: invoice issue
+                    'due_date': invoice.invoice_date_due.strftime('%Y-%m-%d') if invoice.invoice_date_due else None,
                 }
 
         sale_order_ids = invoice.mapped('invoice_line_ids.sale_line_ids.order_id')
