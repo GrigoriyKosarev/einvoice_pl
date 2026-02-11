@@ -106,14 +106,10 @@ class KSefSendInvoice(models.TransientModel):
             days_match = re.search(r'(\d+)', payment_term_name)
             if days_match:
                 days = int(days_match.group(1))
-                # Determine unit (dni/days) - default to "dni" for Polish
-                unit = "dni"
-                if 'day' in payment_term_name.lower():
-                    unit = "days"
 
                 invoice_data['payment_term'] = {
                     'days': days,
-                    'unit': unit,
+                    'unit': 'dni',  # Always use Polish for KSeF
                     'event': 'wystawienie faktury',  # Default: invoice issue
                 }
 
