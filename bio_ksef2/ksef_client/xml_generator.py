@@ -372,6 +372,15 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
                     f'            <Wartosc>{_escape_xml(line["customer_product_name"])}</Wartosc>',
                     '        </DodatkowyOpis>',
                 ])
+            # IdentyfikatorPozycji - Position identifier (CU/SER/RC) - Auchan only
+            if line.get('position_identifier'):
+                xml_parts.extend([
+                    '        <DodatkowyOpis>',
+                    f'            <NrWiersza>{idx}</NrWiersza>',
+                    '            <Klucz>IdentyfikatorPozycji</Klucz>',
+                    f'            <Wartosc>{line["position_identifier"]}</Wartosc>',
+                    '        </DodatkowyOpis>',
+                ])
 
     # Рядки товарів/послуг (FaWiersz)
     # Згідно з офіційним XSD:

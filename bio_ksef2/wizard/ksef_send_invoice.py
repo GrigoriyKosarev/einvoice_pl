@@ -181,6 +181,21 @@ class KSefSendInvoice(models.TransientModel):
                 # Fields not available in this Odoo setup
                 pass
 
+            # Position identifier (IdentyfikatorPozycji) - only for Auchan (VAT=5260309174)
+            position_identifier = None
+            buyer_vat = invoice.partner_id.vat or ""
+            # Clean VAT number (remove PL prefix, spaces, etc.)
+            buyer_vat_clean = buyer_vat.replace('PL', '').replace('pl', '').replace(' ', '').replace('-', '').strip()
+
+            if buyer_vat_clean == '5260309174':  # Auchan
+                # Map product type to position identifier
+                # CU = Storable (consu/product), SER = Service, RC = returnable packaging
+                if line.product_id.type == 'service':
+                    position_identifier = 'SER'
+                elif line.product_id.type in ('product', 'consu'):
+                    position_identifier = 'CU'
+                # RC (returnable packaging) - not implemented yet
+
             # Calculate discount for P_10 field
             discount_percent = line.discount if line.discount else 0.0
             discount_amount = 0.0
@@ -216,6 +231,7 @@ class KSefSendInvoice(models.TransientModel):
                 'procedure': procedure,  # WDT, EE, etc.
                 'customer_product_code': customer_product_code,  # For DodatkowyOpis
                 'customer_product_name': customer_product_name,  # For DodatkowyOpis
+                'position_identifier': position_identifier,  # For DodatkowyOpis - Auchan only
             }
 
             invoice_data['lines'].append(line_data)
