@@ -434,6 +434,22 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
 
         xml_parts.append('        </FaWiersz>')
 
+    # Platnosc - Payment terms (optional)
+    # Must come AFTER FaWiersz and BEFORE WarunkiTransakcji
+    payment_term = invoice_data.get('payment_term')
+    if payment_term:
+        xml_parts.extend([
+            '        <Platnosc>',
+            '            <TerminPlatnosci>',
+            '                <TerminOpis>',
+            f'                    <Ilosc>{payment_term["days"]}</Ilosc>',
+            f'                    <Jednostka>{payment_term["unit"]}</Jednostka>',
+            f'                    <ZdarzeniePoczatkowe>{payment_term["event"]}</ZdarzeniePoczatkowe>',
+            '                </TerminOpis>',
+            '            </TerminPlatnosci>',
+            '        </Platnosc>',
+        ])
+
     # WarunkiTransakcji - Transaction conditions (must come AFTER FaWiersz)
     # According to FA(3) XSD: WarunkiTransakcji comes after Platnosc, after FaWiersz
     # Structure: WarunkiTransakcji -> Zamowienia -> DataZamowienia + NrZamowienia
