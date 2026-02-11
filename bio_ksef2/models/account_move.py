@@ -58,6 +58,12 @@ class AccountMove(models.Model):
         help='Indicates if the company has KSeF configuration',
     )
 
+    delivery_note_number = fields.Char(
+        string='Delivery Note Number',
+        copy=False,
+        help='Delivery note number from stock picking (for KSeF WZ field)',
+    )
+
     # Credit note (Faktura Korygująca) fields
     # Note: Standard 'ref' field is used for correction reason (PrzyczynaKorekty)
     ksef_correction_type = fields.Selection(
@@ -180,3 +186,36 @@ class AccountMove(models.Model):
                 invoice.action_check_ksef_status()
             except Exception as e:
                 _logger.error(f'Failed to check KSeF status for invoice {invoice.name}: {e}')
+
+    def _get_delivery_note_number(self):
+        """Get delivery note number from last stock picking of related sale order"""
+        self.ensure_one()
+
+        # Get sale order from invoice lines
+        sale_orders = self.mapped('invoice_line_ids.sale_line_ids.order_id')
+        if not sale_orders:
+            return False
+
+        # Get last delivery (stock.picking) from sale order
+        sale_order = sale_orders[0]
+        pickings = sale_order.picking_ids.filtered(
+            lambda p: p.picking_type_code == 'outgoing' and p.state == 'done'
+        ).sorted(key=lambda p: p.date_done, reverse=True)
+
+        if pickings:
+            return pickings[0].name
+
+        return False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Override create to auto-populate delivery_note_number"""
+        moves = super(AccountMove, self).create(vals_list)
+
+        for move in moves:
+            if move.move_type in ('out_invoice', 'out_refund') and not move.delivery_note_number:
+                delivery_note = move._get_delivery_note_number()
+                if delivery_note:
+                    move.delivery_note_number = delivery_note
+
+        return moves

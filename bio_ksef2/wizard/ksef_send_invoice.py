@@ -95,6 +95,9 @@ class KSefSendInvoice(models.TransientModel):
 
             # Payment term - will be set below if exists
             'payment_term': None,
+
+            # Delivery note number (WZ) from stock picking
+            'delivery_note_number': invoice.delivery_note_number or '',
         }
 
         # Parse payment term from invoice

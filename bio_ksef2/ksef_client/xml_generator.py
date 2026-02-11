@@ -366,6 +366,12 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
                     '        </DodatkowyOpis>',
                 ])
 
+    # WZ - Delivery note number (optional)
+    # Must come AFTER DodatkowyOpis and BEFORE FaWiersz
+    delivery_note_number = invoice_data.get('delivery_note_number')
+    if delivery_note_number:
+        xml_parts.append(f'        <WZ>{_escape_xml(delivery_note_number)}</WZ>')
+
     # Рядки товарів/послуг (FaWiersz)
     # Згідно з офіційним XSD:
     # P_8A - Miara (одиниця виміру, ТЕКСТ)
