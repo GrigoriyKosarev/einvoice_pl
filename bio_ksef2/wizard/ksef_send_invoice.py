@@ -182,8 +182,12 @@ class KSefSendInvoice(models.TransientModel):
                 pass
 
             # Position identifier (IdentyfikatorPozycji) - only for Auchan (VAT=5260309174)
+            # Check VAT of delivery address (partner_shipping_id), not main buyer
             position_identifier = None
-            buyer_vat = invoice.partner_id.vat or ""
+            buyer_vat = ""
+            if hasattr(invoice, 'partner_shipping_id') and invoice.partner_shipping_id:
+                buyer_vat = invoice.partner_shipping_id.vat or ""
+
             # Clean VAT number (remove PL prefix, spaces, etc.)
             buyer_vat_clean = buyer_vat.replace('PL', '').replace('pl', '').replace(' ', '').replace('-', '').strip()
 
