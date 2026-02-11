@@ -448,6 +448,14 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         xml_parts.extend([
             '        <Platnosc>',
             '            <TerminPlatnosci>',
+        ])
+
+        # Termin - specific payment due date (if available)
+        if payment_term.get('due_date'):
+            xml_parts.append(f'                <Termin>{payment_term["due_date"]}</Termin>')
+
+        # TerminOpis - payment term description
+        xml_parts.extend([
             '                <TerminOpis>',
             f'                    <Ilosc>{payment_term["days"]}</Ilosc>',
             f'                    <Jednostka>{payment_term["unit"]}</Jednostka>',
