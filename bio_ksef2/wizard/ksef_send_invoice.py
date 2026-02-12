@@ -375,6 +375,21 @@ class KSefSendInvoice(models.TransientModel):
 
             self.invoice_id.write(vals)
 
+            # Save XML as attachment to invoice
+            # Create attachment with XML content
+            import base64
+            attachment_name = f'KSeF_{self.invoice_id.name.replace("/", "_")}.xml'
+            self.env['ir.attachment'].create({
+                'name': attachment_name,
+                'type': 'binary',
+                'datas': base64.b64encode(invoice_xml.encode('utf-8')),
+                'res_model': 'account.move',
+                'res_id': self.invoice_id.id,
+                'mimetype': 'application/xml',
+                'description': f'KSeF XML - Sent: {vals["ksef_sent_date"]}, Reference: {invoice_ref}',
+            })
+            _logger.info(f'Saved KSeF XML as attachment: {attachment_name}')
+
             # Prepare message
             if vals.get('ksef_status') == 'accepted':
                 message = _('Invoice successfully sent to KSeF!\nKSeF Number: %s') % self.invoice_id.ksef_number
