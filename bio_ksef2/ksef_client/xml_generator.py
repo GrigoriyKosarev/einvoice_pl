@@ -110,7 +110,13 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'            <KodKraju>{seller.get("country", "PL")}</KodKraju>',
         f'            <AdresL1>{_escape_xml(seller.get("street", ""))}</AdresL1>',
         f'            <AdresL2>{seller.get("zip", "")} {_escape_xml(seller.get("city", ""))}</AdresL2>',
-        f'            <GLN>{seller.get("gln", "")}</GLN>',
+    ])
+
+    # GLN - optional, only if provided
+    if seller.get("gln"):
+        xml_parts.append(f'            <GLN>{seller["gln"]}</GLN>')
+
+    xml_parts.extend([
         '        </Adres>',
         '    </Podmiot1>',
     ])
@@ -156,9 +162,13 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         f'            <KodKraju>{buyer_country}</KodKraju>',
         f'            <AdresL1>{_escape_xml(buyer.get("street", ""))}</AdresL1>',
         f'            <AdresL2>{buyer.get("zip", "")} {_escape_xml(buyer.get("city", ""))}</AdresL2>',
-        f'            <GLN>{buyer.get("gln", "")}</GLN>',
-        '        </Adres>',
     ])
+
+    # GLN - optional, only if provided
+    if buyer.get("gln"):
+        xml_parts.append(f'            <GLN>{buyer["gln"]}</GLN>')
+
+    xml_parts.append('        </Adres>')
 
     # FA(3) requires JST and GV fields in Podmiot2 (mandatory!)
     # JST - Jednostka Samorządu Terytorialnego (territorial self-government unit)
@@ -472,13 +482,22 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
         if payment_term.get('due_date'):
             xml_parts.append(f'                <Termin>{payment_term["due_date"]}</Termin>')
 
-        # TerminOpis - payment term description
+        # TerminOpis - payment term description (only if days/unit/event are provided)
+        if payment_term.get('days') and payment_term.get('unit'):
+            xml_parts.append('                <TerminOpis>')
+
+            if payment_term.get('days'):
+                xml_parts.append(f'                    <Ilosc>{payment_term["days"]}</Ilosc>')
+
+            if payment_term.get('unit'):
+                xml_parts.append(f'                    <Jednostka>{payment_term["unit"]}</Jednostka>')
+
+            if payment_term.get('event'):
+                xml_parts.append(f'                    <ZdarzeniePoczatkowe>{payment_term["event"]}</ZdarzeniePoczatkowe>')
+
+            xml_parts.append('                </TerminOpis>')
+
         xml_parts.extend([
-            '                <TerminOpis>',
-            f'                    <Ilosc>{payment_term["days"]}</Ilosc>',
-            f'                    <Jednostka>{payment_term["unit"]}</Jednostka>',
-            f'                    <ZdarzeniePoczatkowe>{payment_term["event"]}</ZdarzeniePoczatkowe>',
-            '                </TerminOpis>',
             '            </TerminPlatnosci>',
             '        </Platnosc>',
         ])
