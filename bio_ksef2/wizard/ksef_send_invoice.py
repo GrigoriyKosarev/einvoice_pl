@@ -200,6 +200,11 @@ class KSefSendInvoice(models.TransientModel):
                     position_identifier = 'CU'
                 # RC (returnable packaging) - not implemented yet
 
+            # Logistics activity code (AktywnoscLogistyczna) from delivery address
+            logistics_code = None
+            if hasattr(invoice, 'partner_shipping_id') and invoice.partner_shipping_id:
+                logistics_code = invoice.partner_shipping_id.ksef_code or None
+
             # Calculate discount for P_10 field
             discount_percent = line.discount if line.discount else 0.0
             discount_amount = 0.0
@@ -236,6 +241,7 @@ class KSefSendInvoice(models.TransientModel):
                 'customer_product_code': customer_product_code,  # For DodatkowyOpis
                 'customer_product_name': customer_product_name,  # For DodatkowyOpis
                 'position_identifier': position_identifier,  # For DodatkowyOpis - Auchan only
+                'logistics_code': logistics_code,  # For DodatkowyOpis - from delivery address
             }
 
             invoice_data['lines'].append(line_data)

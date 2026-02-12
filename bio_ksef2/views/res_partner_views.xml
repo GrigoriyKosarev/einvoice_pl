@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Partner Form View Inherit -->
+    <record id="view_partner_form_inherit_ksef" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.ksef</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Code field to Sales & Purchase tab, Misc section -->
+            <xpath expr="//page[@name='sales_purchases']//group[@name='misc']" position="inside">
+                <field name="ksef_code"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
