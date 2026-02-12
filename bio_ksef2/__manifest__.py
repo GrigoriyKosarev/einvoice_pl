@@ -35,6 +35,7 @@ Requirements:
     'data': [
         'security/ir.model.access.csv',
         'views/ksef_config_views.xml',
+        'views/res_partner_views.xml',
         'views/account_move_views.xml',
         'wizard/ksef_send_invoice_views.xml',
     ],

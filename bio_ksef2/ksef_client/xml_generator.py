@@ -381,6 +381,15 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
                     f'            <Wartosc>{line["position_identifier"]}</Wartosc>',
                     '        </DodatkowyOpis>',
                 ])
+            # AktywnoscLogistyczna - Logistics activity code from delivery address
+            if line.get('logistics_code'):
+                xml_parts.extend([
+                    '        <DodatkowyOpis>',
+                    f'            <NrWiersza>{idx}</NrWiersza>',
+                    '            <Klucz>AktywnoscLogistyczna</Klucz>',
+                    f'            <Wartosc>{_escape_xml(line["logistics_code"])}</Wartosc>',
+                    '        </DodatkowyOpis>',
+                ])
 
     # Рядки товарів/послуг (FaWiersz)
     # Згідно з офіційним XSD:
