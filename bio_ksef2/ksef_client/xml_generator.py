@@ -102,6 +102,7 @@ def generate_fa_vat_xml(invoice_data: Dict[str, Any], format_version: str = 'FA2
     # TODO: Add PrefiksPodatnika only when required by specific regulations
 
     xml_parts.extend([
+        f'       <PrefiksPodatnika>{seller.get("country", "PL")}</PrefiksPodatnika>',
         '        <DaneIdentyfikacyjne>',
         f'            <NIP>{_clean_nip(seller["nip"])}</NIP>',
         f'            <Nazwa>{_escape_xml(seller["name"])}</Nazwa>',
